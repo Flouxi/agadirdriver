@@ -1,0 +1,6 @@
+{
+  "name": "AgadirDriver.com",
+  "description": "Private airport taxi and transfer service in Agadir, Morocco, offering professional local drivers, fixed pricing, and premium vehicles.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
