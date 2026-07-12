@@ -1,10 +1,21 @@
 export default function Hero() {
   return (
     <section id="home" className="relative min-h-screen flex items-center overflow-hidden">
-      <div className="absolute inset-0">
-        <video autoPlay muted loop playsInline poster="/hero-poster.jpg" className="w-full h-full object-cover">
-          <source src="/hero-video.mp4" type="video/mp4" />
-        </video>
+      <div className="absolute inset-0 bg-[var(--dark-bg)]">
+        {/* Vimeo background video (autoplay, muted, looped, no UI).
+            "background=1" is Vimeo's dedicated mode for exactly this use case.
+            The wrapper + iframe sizing below makes it cover the section the
+            same way object-fit:cover works for a native <video> tag. */}
+        <div className="absolute top-1/2 left-1/2 w-full h-full overflow-hidden -translate-x-1/2 -translate-y-1/2">
+          <iframe
+            src="https://player.vimeo.com/video/1209068705?background=1&autoplay=1&loop=1&muted=1&byline=0&title=0&portrait=0"
+            frameBorder="0"
+            allow="autoplay; fullscreen; picture-in-picture"
+            allowFullScreen
+            title="Agadir hero background video"
+            className="absolute top-1/2 left-1/2 w-[100vw] h-[56.25vw] min-h-full min-w-[177.78vh] -translate-x-1/2 -translate-y-1/2 pointer-events-none"
+          />
+        </div>
         <div className="absolute inset-0 bg-gradient-to-r from-[var(--dark-bg)]/90 via-[var(--dark-bg)]/70 to-[var(--dark-bg)]/50 z-10" />
       </div>
       <div className="relative z-20 container mx-auto px-4 py-20">
