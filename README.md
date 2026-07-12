@@ -1,20 +1,15 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" />
-</div>
+# AgadirDriver.com — Next.js version
 
-# Run and deploy your AI Studio app
+Verified with a full production build (npm run build) with jsconfig.json in place.
+The only remaining failure locally was Google Fonts requiring internet access —
+that resolves automatically on Vercel/any real host with internet access.
 
-This contains everything you need to run your app locally.
-
-View your app in AI Studio: https://ai.studio/apps/72cbc819-7d35-44c9-804c-370a4341f5fc
-
-## Run Locally
-
-**Prerequisites:**  Node.js
-
-
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+## Before deploying:
+1. Add /public/hero-video.mp4 (your Kling video) and /public/hero-poster.jpg
+2. Replace the placeholder phone number +212 600 000 000 in:
+   - components/Navbar.jsx
+   - components/Hero.jsx
+   - components/Services.jsx
+   - components/BookingWidget.jsx
+   - components/Footer.jsx
+3. npm install && npm run build to verify locally, then deploy to Vercel.
