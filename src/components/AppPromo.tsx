@@ -126,7 +126,7 @@ export default function AppPromo() {
                 </figcaption>
               </figure>
 
-              <div className="flex flex-col gap-y-2">
+              <div className="flex flex-col gap-y-1">
                 <a
                   href="#"
                   className="rounded-md transition hover:opacity-85"
@@ -167,7 +167,7 @@ export default function AppPromo() {
               className="h-44 w-44 rounded-lg bg-white object-contain p-2"
             />
             <p className="text-sm text-neutral-400">Télécharger l’application</p>
-            <div className="flex flex-col items-center gap-1.5">
+            <div className="flex flex-col items-center gap-1">
               <a href="#" className="block transition hover:opacity-85" title="App Store">
                 <span className="sr-only">Télécharger sur l'App Store</span>
                 <img
