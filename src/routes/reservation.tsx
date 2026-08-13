@@ -108,11 +108,13 @@ function ReservationPage() {
         vehicle: v,
         original,
         price: pricing.eur,
-        popular: v.id === "standard",
-        premium: v.id === "first" || v.id === "van-first",
+        quoteRequired: pricing.quoteRequired,
+        popular: v.id === "comfort-sedan",
+        premium: v.id === "luxury-sedan" || v.id === "suv",
       };
     });
   }, [from, to]);
+
 
   const [selectedId, setSelectedId] = useState<string>(vehiclesWithPricing[0].vehicle.id);
   const selected = vehiclesWithPricing.find((x) => x.vehicle.id === selectedId)!;
