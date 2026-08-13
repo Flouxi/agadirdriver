@@ -2,6 +2,33 @@
 @source "../src";
 @import "tw-animate-css";
 
+@theme {
+  --font-sans: "Poppins", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Poppins", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+
+  /* Brand palette — near-black + white + one premium accent (deep gold) */
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-surface: var(--surface);
+  --color-surface-alt: var(--surface-alt);
+  --color-line: var(--line);
+  --color-accent: var(--accent-brand);
+  --color-accent-strong: var(--accent-strong);
+  --color-accent-foreground: var(--accent-brand-foreground);
+  --color-accent-tint: var(--accent-tint);
+  --color-trust: var(--trust);
+
+  /* Vertical rhythm scale */
+  --spacing-section: var(--space-section);
+  --spacing-section-sm: var(--space-section-sm);
+
+  /* Elevation */
+  --shadow-soft: 0 1px 2px oklch(0 0 0 / 0.04), 0 8px 24px -12px oklch(0 0 0 / 0.12);
+  --shadow-lift: 0 2px 4px oklch(0 0 0 / 0.05), 0 18px 40px -16px oklch(0 0 0 / 0.22);
+  --shadow-float: 0 4px 8px oklch(0 0 0 / 0.06), 0 32px 64px -24px oklch(0 0 0 / 0.35);
+}
+
 @custom-variant dark (&:is(.dark *));
 
 /*
@@ -62,15 +89,32 @@
 }
 
 :root {
-  --radius: 0.625rem;
+  --radius: 0.75rem;
+
+  /* Brand tokens — adjust these to retheme the whole site */
+  --ink: oklch(0.16 0.006 260);
+  --ink-soft: oklch(0.28 0.008 260);
+  --surface: oklch(1 0 0);
+  --surface-alt: oklch(0.975 0.002 260);
+  --line: oklch(0.918 0.004 260);
+  --accent-brand: oklch(0.76 0.128 78);
+  --accent-strong: oklch(0.66 0.125 72);
+  --accent-brand-foreground: oklch(0.16 0.006 260);
+  --accent-tint: oklch(0.76 0.128 78 / 0.12);
+  --trust: oklch(0.66 0.13 162);
+
+  /* Spacing rhythm: 80px mobile → 120px desktop */
+  --space-section: 5rem;
+  --space-section-sm: 3.5rem;
+
   --background: oklch(1 0 0);
-  --foreground: oklch(0.129 0.042 264.695);
+  --foreground: oklch(0.16 0.006 260);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.129 0.042 264.695);
+  --card-foreground: oklch(0.16 0.006 260);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.129 0.042 264.695);
-  --primary: oklch(0.208 0.042 265.755);
-  --primary-foreground: oklch(0.984 0.003 247.858);
+  --popover-foreground: oklch(0.16 0.006 260);
+  --primary: oklch(0.16 0.006 260);
+  --primary-foreground: oklch(0.99 0 0);
   --secondary: oklch(0.968 0.007 247.896);
   --secondary-foreground: oklch(0.208 0.042 265.755);
   --muted: oklch(0.968 0.007 247.896);
@@ -140,5 +184,79 @@
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    letter-spacing: -0.025em;
+  }
+
+  ::selection {
+    background-color: var(--accent-tint);
+    color: var(--ink);
+  }
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --space-section: 7.5rem;
+    --space-section-sm: 5rem;
+  }
+}
+
+/* Section rhythm helper */
+@utility section-y {
+  padding-top: var(--space-section);
+  padding-bottom: var(--space-section);
+}
+
+@utility section-y-sm {
+  padding-top: var(--space-section-sm);
+  padding-bottom: var(--space-section-sm);
+}
+
+@utility shell {
+  margin-inline: auto;
+  width: 100%;
+  max-width: 80rem;
+  padding-inline: 1.25rem;
+  @media (min-width: 640px) {
+    padding-inline: 2rem;
+  }
+}
+
+/* Gentle lift/scale on hover for cards */
+@utility card-lift {
+  transition:
+    transform 240ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 240ms cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 240ms ease;
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lift);
+  }
+}
+
+/* Scroll-triggered fade-in (driven by IntersectionObserver, CSS-only motion) */
+@utility reveal {
+  opacity: 0;
+  transform: translateY(18px);
+  transition:
+    opacity 620ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 620ms cubic-bezier(0.22, 1, 0.36, 1);
+  &[data-revealed="true"] {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
   }
 }
