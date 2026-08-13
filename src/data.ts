@@ -16,7 +16,7 @@ export const VEHICLES: VehicleClass[] = [
     bestFor: 'Solo travellers and couples',
     basePrice: 15,
     image: VEHICLE_IMAGE_URLS.standard,
-    carModels: 'Dacia Logan, Skoda Octavia or similar',
+    carModels: 'Dacia Logan, Skoda Octavia',
   },
   {
     id: 'comfort-sedan',
@@ -29,7 +29,7 @@ export const VEHICLES: VehicleClass[] = [
     bestFor: 'Families and customers wanting extra comfort',
     basePrice: 18,
     image: VEHICLE_IMAGE_URLS.standard,
-    carModels: 'Skoda Superb, Peugeot 508 or similar',
+    carModels: 'Skoda Superb, Peugeot 508',
   },
   {
     id: 'comfort-van',
@@ -42,7 +42,7 @@ export const VEHICLES: VehicleClass[] = [
     bestFor: 'Families, surf groups and larger luggage',
     basePrice: 22,
     image: VEHICLE_IMAGE_URLS.vanStandard,
-    carModels: 'Mercedes Vito, Hyundai H1 or similar',
+    carModels: 'Mercedes Vito, Hyundai H1',
   },
   {
     id: 'suv',
@@ -69,7 +69,7 @@ export const VEHICLES: VehicleClass[] = [
     bestFor: 'VIP, executive and special-occasion travel',
     basePrice: 32,
     image: VEHICLE_IMAGE_URLS.first,
-    carModels: 'Premium sedan, confirmed at booking',
+    carModels: 'Premium sedan',
     onRequest: true,
   },
   {
@@ -83,7 +83,7 @@ export const VEHICLES: VehicleClass[] = [
     bestFor: 'Groups, retreats, events and surf camps',
     basePrice: 30,
     image: VEHICLE_IMAGE_URLS.vanFirst,
-    carModels: 'Mercedes Sprinter or similar',
+    carModels: 'Mercedes Sprinter',
   },
   {
     id: 'minibus-17',
@@ -96,7 +96,7 @@ export const VEHICLES: VehicleClass[] = [
     bestFor: 'Large groups and corporate travel',
     basePrice: 35,
     image: VEHICLE_IMAGE_URLS.vanFirst,
-    carModels: 'Mercedes Sprinter 17 or similar',
+    carModels: 'Mercedes Sprinter 17',
   },
 ];
 
