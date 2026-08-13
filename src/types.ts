@@ -1,3 +1,5 @@
+import type { VehicleTier } from './data/tariffs';
+
 export interface BookingDetails {
   type: 'transfer' | 'hourly';
   from: string;
@@ -13,15 +15,20 @@ export interface BookingDetails {
 
 export interface VehicleClass {
   id: string;
+  tier: VehicleTier;
   name: string;
   description: string;
   passengers: number;
   luggage: number;
-  pricePerKm: number; // in EUR/MAD
-  basePrice: number; // in EUR/MAD
-  image: string; // car icon/photo
+  luggageNote: string;
+  bestFor: string;
+  basePrice: number; // lowest published one-way fare, EUR
+  image: string;
   carModels: string;
+  /** Shown only when the vehicle is actually available / quoted manually. */
+  onRequest?: boolean;
 }
+
 
 export interface Review {
   id: string;
