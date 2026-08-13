@@ -126,14 +126,14 @@ export default function AppPromo() {
                 </figcaption>
               </figure>
 
-              <div className="flex flex-col gap-y-1">
+              <div className="flex flex-col items-center gap-3">
                 <a
                   href="#"
                   className="rounded-md transition hover:opacity-85"
                   title="Télécharger sur l'App Store"
                 >
                   <span className="sr-only">Télécharger sur l'App Store</span>
-                  <img src="/apple-store.svg" alt="" loading="lazy" className="w-[150px]" />
+                  <img src="/apple-store.svg" alt="" loading="lazy" className="h-12 w-auto" />
                 </a>
                 <a
                   href="#"
@@ -141,7 +141,7 @@ export default function AppPromo() {
                   title="Télécharger sur Google Play"
                 >
                   <span className="sr-only">Télécharger sur Google Play</span>
-                  <img src="/play-store.svg" alt="" loading="lazy" className="w-[150px]" />
+                  <img src="/play-store.svg" alt="" loading="lazy" className="h-12 w-auto" />
                 </a>
               </div>
             </div>
