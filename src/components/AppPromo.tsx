@@ -159,7 +159,7 @@ export default function AppPromo() {
           </div>
 
           {/* Mobile: QR + store badges stacked, centered */}
-          <div className="order-3 flex flex-col items-center gap-4 pb-12 md:hidden">
+          <div className="order-3 flex flex-col items-center gap-3 pb-12 md:hidden">
             <img
               src="/app-qr.svg"
               alt="QR code — télécharger l'application Agadir Driver"
@@ -167,15 +167,23 @@ export default function AppPromo() {
               className="h-44 w-44 rounded-lg bg-white object-contain p-2"
             />
             <p className="text-sm text-neutral-400">Télécharger l’application</p>
-            <a href="#" className="transition hover:opacity-85" title="App Store">
-              <span className="sr-only">Télécharger sur l'App Store</span>
-              <img src="/apple-store.svg" alt="" loading="lazy" className="w-[190px]" />
-            </a>
-            <a href="#" className="transition hover:opacity-85" title="Google Play">
-              <span className="sr-only">Télécharger sur Google Play</span>
-              <img src="/play-store.svg" alt="" loading="lazy" className="w-[190px]" />
-            </a>
+            <div className="flex flex-col items-center gap-1.5">
+              <a href="#" className="block transition hover:opacity-85" title="App Store">
+                <span className="sr-only">Télécharger sur l'App Store</span>
+                <img
+                  src="/apple-store.svg"
+                  alt=""
+                  loading="lazy"
+                  className="block w-[170px]"
+                />
+              </a>
+              <a href="#" className="block transition hover:opacity-85" title="Google Play">
+                <span className="sr-only">Télécharger sur Google Play</span>
+                <img src="/play-store.svg" alt="" loading="lazy" className="block w-[170px]" />
+              </a>
+            </div>
           </div>
+
         </div>
 
       </div>
