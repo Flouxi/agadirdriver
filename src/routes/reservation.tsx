@@ -191,7 +191,7 @@ function ReservationPage() {
 
               {/* Vehicle cards list */}
               <div className="space-y-3">
-                {vehiclesWithPricing.map(({ vehicle, original, price, popular, premium }) => {
+                {vehiclesWithPricing.map(({ vehicle, original, price, popular, premium, quoteRequired }) => {
                   const active = vehicle.id === selectedId;
                   return (
                     <button
@@ -256,13 +256,26 @@ function ReservationPage() {
 
                       {/* Price block */}
                       <div className="text-right shrink-0">
-                        <div className="text-[13px] text-gray-400 line-through">
-                          EUR {original.toFixed(2)}
-                        </div>
-                        <div className="text-[18px] sm:text-[20px] font-bold text-[#e11d29] mt-0.5">
-                          EUR {price.toFixed(2)}
-                        </div>
-                        <div className="text-[11px] text-gray-400 mt-0.5">Prix total</div>
+                        {quoteRequired ? (
+                          <>
+                            <div className="text-[14px] font-bold text-gray-900">
+                              Request a confirmed quote
+                            </div>
+                            <div className="text-[11px] text-gray-400 mt-0.5">
+                              Outside the fixed tariff zones
+                            </div>
+                          </>
+                        ) : (
+                          <>
+                            <div className="text-[13px] text-gray-400 line-through">
+                              EUR {original.toFixed(2)}
+                            </div>
+                            <div className="text-[18px] sm:text-[20px] font-bold text-[#e11d29] mt-0.5">
+                              EUR {price.toFixed(2)}
+                            </div>
+                            <div className="text-[11px] text-gray-400 mt-0.5">Fixed price per vehicle</div>
+                          </>
+                        )}
                       </div>
                     </button>
                   );
