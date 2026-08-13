@@ -126,14 +126,14 @@ export default function AppPromo() {
                 </figcaption>
               </figure>
 
-              <div className="flex flex-col gap-y-1">
+              <div className="flex flex-col items-center gap-3">
                 <a
                   href="#"
                   className="rounded-md transition hover:opacity-85"
                   title="Télécharger sur l'App Store"
                 >
                   <span className="sr-only">Télécharger sur l'App Store</span>
-                  <img src="/apple-store.svg" alt="" loading="lazy" className="w-[150px]" />
+                  <img src="/apple-store.svg" alt="" loading="lazy" className="h-12 w-auto" />
                 </a>
                 <a
                   href="#"
@@ -141,7 +141,7 @@ export default function AppPromo() {
                   title="Télécharger sur Google Play"
                 >
                   <span className="sr-only">Télécharger sur Google Play</span>
-                  <img src="/play-store.svg" alt="" loading="lazy" className="w-[150px]" />
+                  <img src="/play-store.svg" alt="" loading="lazy" className="h-12 w-auto" />
                 </a>
               </div>
             </div>
@@ -167,19 +167,19 @@ export default function AppPromo() {
               className="h-44 w-44 rounded-lg bg-white object-contain p-2"
             />
             <p className="text-sm text-neutral-400">Télécharger l’application</p>
-            <div className="flex flex-col items-center gap-1">
+            <div className="flex flex-col items-center gap-3">
               <a href="#" className="block transition hover:opacity-85" title="App Store">
                 <span className="sr-only">Télécharger sur l'App Store</span>
                 <img
                   src="/apple-store.svg"
                   alt=""
                   loading="lazy"
-                  className="block w-[170px]"
+                  className="block h-12 w-auto"
                 />
               </a>
               <a href="#" className="block transition hover:opacity-85" title="Google Play">
                 <span className="sr-only">Télécharger sur Google Play</span>
-                <img src="/play-store.svg" alt="" loading="lazy" className="block w-[170px]" />
+                <img src="/play-store.svg" alt="" loading="lazy" className="block h-12 w-auto" />
               </a>
             </div>
           </div>
