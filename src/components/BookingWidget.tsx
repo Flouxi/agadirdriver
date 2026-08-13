@@ -56,8 +56,8 @@ export default function BookingWidget({ onBookingComplete, onVehicleSelected, in
 
   const [searching, setSearching] = useState(false);
 
-  const calculatePrice = (vehicle: VehicleClass) => {
-    const pricing = calculateRoutePrice({
+  const calculatePrice = (vehicle: VehicleClass) =>
+    calculateRoutePrice({
       from: fromLocation,
       to: toLocation,
       vehicle,
@@ -65,8 +65,7 @@ export default function BookingWidget({ onBookingComplete, onVehicleSelected, in
       durationHours,
       hasReturn,
     });
-    return pricing.eur;
-  };
+
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
