@@ -56,8 +56,8 @@ export default function BookingWidget({ onBookingComplete, onVehicleSelected, in
 
   const [searching, setSearching] = useState(false);
 
-  const calculatePrice = (vehicle: VehicleClass) => {
-    const pricing = calculateRoutePrice({
+  const calculatePrice = (vehicle: VehicleClass) =>
+    calculateRoutePrice({
       from: fromLocation,
       to: toLocation,
       vehicle,
@@ -65,8 +65,7 @@ export default function BookingWidget({ onBookingComplete, onVehicleSelected, in
       durationHours,
       hasReturn,
     });
-    return pricing.eur;
-  };
+
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -451,7 +450,8 @@ export default function BookingWidget({ onBookingComplete, onVehicleSelected, in
           {/* List of Vehicles */}
           <div className="space-y-4 max-h-[450px] overflow-y-auto pr-1">
             {VEHICLES.map((vehicle) => {
-              const price = calculatePrice(vehicle);
+              const pricing = calculatePrice(vehicle);
+              const price = pricing.eur;
               // Hide cars that cannot fit the group size
               if (passengers > vehicle.passengers) return null;
 
@@ -474,8 +474,8 @@ export default function BookingWidget({ onBookingComplete, onVehicleSelected, in
                       <div className="flex justify-between items-start">
                         <h4 className="font-bold text-base text-gray-900 group-hover:text-[#EAB308] transition-colors">{vehicle.name}</h4>
                         <div className="text-right">
-                          <span className="text-[10px] text-gray-400 font-bold block uppercase leading-3">Tarif tout compris</span>
-                          <span className="text-xl font-extrabold text-gray-900 font-mono">{price} €</span>
+                          <span className="text-[10px] text-gray-400 font-bold block uppercase leading-3">{pricing.quoteRequired ? 'Sur devis' : 'Prix fixe par véhicule'}</span>
+                          <span className="text-xl font-extrabold text-gray-900 font-mono">{pricing.quoteRequired ? 'Devis' : `${price} €`}</span>
                         </div>
                       </div>
                       <p className="text-[11px] font-semibold text-gray-400 mt-0.5 font-mono">{vehicle.carModels}</p>
@@ -536,7 +536,7 @@ export default function BookingWidget({ onBookingComplete, onVehicleSelected, in
             </div>
             <div className="text-right">
               <span className="block text-[10px] text-gray-400 font-bold uppercase">Total</span>
-              <span className="text-lg font-extrabold text-[#EAB308] font-mono">{calculatePrice(selectedVehicle)} €</span>
+              <span className="text-lg font-extrabold text-[#EAB308] font-mono">{calculatePrice(selectedVehicle).eur} €</span>
             </div>
           </div>
 
@@ -668,7 +668,7 @@ export default function BookingWidget({ onBookingComplete, onVehicleSelected, in
             ) : (
               <>
                 <Shield size={16} className="text-[#0F1115]" />
-                <span>Confirmer la réservation et payer {calculatePrice(selectedVehicle)} €</span>
+                <span>Confirmer la réservation et payer {calculatePrice(selectedVehicle).eur} €</span>
               </>
             )}
           </button>
@@ -733,7 +733,7 @@ export default function BookingWidget({ onBookingComplete, onVehicleSelected, in
                 </div>
                 <div className="text-right">
                   <span className="text-[9px] text-gray-400 font-bold uppercase tracking-wider block">Montant Payé</span>
-                  <span className="font-extrabold text-[#EAB308] bg-[#0F1115] px-2.5 py-0.5 rounded font-mono text-sm">{calculatePrice(selectedVehicle)} €</span>
+                  <span className="font-extrabold text-[#EAB308] bg-[#0F1115] px-2.5 py-0.5 rounded font-mono text-sm">{calculatePrice(selectedVehicle).eur} €</span>
                 </div>
               </div>
             </div>
