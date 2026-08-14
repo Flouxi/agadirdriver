@@ -33,9 +33,9 @@ export const Route = createFileRoute("/")({
       },
       { property: "og:type", content: "website" },
       { property: "og:image", content: "https://agadirdriver.com/assets/agadir88/hero-desktop-v2.jpg" },
-      { property: "og:url", content: "/" },
+      { property: "og:url", content: "https://agadirdriver.com/" },
     ],
-    links: [{ rel: "canonical", href: "/" }],
+    links: [{ rel: "canonical", href: "https://agadirdriver.com/" }],
   }),
   component: Index,
 });
