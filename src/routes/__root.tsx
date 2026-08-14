@@ -78,22 +78,25 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" },
-      { title: "Agadir Driver — Chauffeur privé & transferts premium à Agadir" },
-      { name: "description", content: "Réservez un chauffeur privé à Agadir, Taghazout et partout au Maroc. Transferts aéroport, trajets ville à ville et location à l'heure, prix fixes." },
+      { title: "Agadir Airport Transfer & Private Driver | AgadirDriver.com" },
+      { name: "description", content: "Book an Agadir airport transfer or private driver to Agadir, Taghazout, Tamraght, and nearby destinations via WhatsApp." },
       { name: "author", content: "Agadir Driver" },
       { property: "og:site_name", content: "Agadir Driver" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { property: "og:title", content: "Agadir Driver — Chauffeur privé & transferts premium à Agadir" },
-      { name: "twitter:title", content: "Agadir Driver — Chauffeur privé & transferts premium à Agadir" },
-      { property: "og:description", content: "Réservez un chauffeur privé à Agadir, Taghazout et partout au Maroc. Transferts aéroport, trajets ville à ville et location à l'heure, prix fixes." },
-      { name: "twitter:description", content: "Réservez un chauffeur privé à Agadir, Taghazout et partout au Maroc. Transferts aéroport, trajets ville à ville et location à l'heure, prix fixes." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/6e3be397-48e5-4ec7-bafc-f39340f05f51/id-preview-1520b5f9--97078104-6788-4655-9ac8-a65589414499.lovable.app-1784382010789.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/6e3be397-48e5-4ec7-bafc-f39340f05f51/id-preview-1520b5f9--97078104-6788-4655-9ac8-a65589414499.lovable.app-1784382010789.png" },
+      { property: "og:title", content: "Agadir Airport Transfer & Private Driver | AgadirDriver.com" },
+      { name: "twitter:title", content: "Agadir Airport Transfer & Private Driver | AgadirDriver.com" },
+      { property: "og:description", content: "Book an Agadir airport transfer or private driver to Agadir, Taghazout, Tamraght, and nearby destinations via WhatsApp." },
+      { name: "twitter:description", content: "Book an Agadir airport transfer or private driver to Agadir, Taghazout, Tamraght, and nearby destinations via WhatsApp." },
+      { property: "og:image", content: "https://agadirdriver.com/assets/agadir88/hero-desktop-v2.jpg" },
+      { property: "og:image:alt", content: "Private chauffeur passenger in Agadir" },
+      { name: "twitter:image", content: "https://agadirdriver.com/assets/agadir88/hero-desktop-v2.jpg" },
+      { name: "twitter:image:alt", content: "Private chauffeur passenger in Agadir" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
-      { rel: "icon", type: "image/png", href: "/favicon.png" },
+      { rel: "icon", type: "image/jpeg", href: "/favicon.jpg" },
+      { rel: "apple-touch-icon", href: "/favicon.jpg" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" },
@@ -110,6 +113,18 @@ function RootShell({ children }: { children: ReactNode }) {
     <html lang="en">
       <head>
         <HeadContent />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "LocalBusiness",
+          "@id": "https://agadirdriver.com/#business",
+          "name": "AgadirDriver",
+          "url": "https://agadirdriver.com/",
+          "logo": "https://agadirdriver.com/assets/agadir88/agadir-driver-logo.png",
+          "image": "https://agadirdriver.com/assets/agadir88/hero-desktop-v2.jpg",
+          "telephone": "+212 673 787 604",
+          "address": { "@type": "PostalAddress", "streetAddress": "Anza", "addressLocality": "Agadir", "postalCode": "80000", "addressCountry": "MA" },
+          "areaServed": ["Agadir", "Agadir Al Massira Airport", "Taghazout", "Tamraght", "Souss-Massa"],
+        }) }} />
       </head>
       <body>
         {children}

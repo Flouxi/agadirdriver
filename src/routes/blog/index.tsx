@@ -7,6 +7,8 @@ export const Route = createFileRoute("/blog/")({
     meta: [
       { title: "Agadir Travel Journal | Airport Transfers and Local Guides" },
       { name: "description", content: "Practical Agadir travel guides covering airport transfers, taxis, Taghazout, Tamraght, and private drivers." },
+      { property: "og:type", content: "website" },
+      { property: "og:image", content: "https://agadirdriver.com/assets/agadir88/hero-desktop-v2.jpg" },
     ],
     links: [{ rel: "canonical", href: "https://agadirdriver.com/blog" }],
   }),

@@ -7,6 +7,9 @@ export const Route = createFileRoute("/agadir-airport-transfer")({
     meta: [
       { title: SERVICE_PAGES["/agadir-airport-transfer"].title },
       { name: "description", content: SERVICE_PAGES["/agadir-airport-transfer"].description },
+      { property: "og:type", content: "website" },
+      { property: "og:image", content: "https://agadirdriver.com/assets/agadir88/hero-desktop-v2.jpg" },
+      { property: "og:image:alt", content: `${SERVICE_PAGES["/agadir-airport-transfer"].h1} image` },
     ],
     links: [{ rel: "canonical", href: "https://agadirdriver.com/agadir-airport-transfer" }],
   }),

@@ -70,11 +70,11 @@ export default function Footer() {
               <span className="block text-[12px] font-semibold tracking-wide text-white/40 uppercase">Assistance 24/7</span>
               <div className="flex items-center gap-2">
                 <Phone size={14} strokeWidth={1.75} className="text-accent" />
-                <span>+212 060 641 9700</span>
+                <span>+212 673 787 604</span>
               </div>
               <a href={whatsappLink} target="_blank" rel="noreferrer" className="flex items-center gap-2 transition-colors hover:text-white">
                 <MessageCircle size={14} strokeWidth={1.75} className="text-accent" />
-                <span>WhatsApp : +212 060 641 9700</span>
+                <span>WhatsApp : +212 673 787 604</span>
               </a>
               <a href={`mailto:${supportEmail}`} className="flex items-center gap-2 transition-colors hover:text-white">
                 <Mail size={14} strokeWidth={1.75} className="text-accent" />

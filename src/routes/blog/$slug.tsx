@@ -5,7 +5,7 @@ import { BLOG_POSTS, BUSINESS } from "../../data/seo";
 export const Route = createFileRoute("/blog/$slug")({
   head: ({ params }) => {
     const post = BLOG_POSTS.find((item) => item.path.endsWith(params.slug));
-    return { meta: [{ title: post ? `${post.title} | AgadirDriver.com` : "Agadir Travel Guide | AgadirDriver.com" }, { name: "description", content: post?.description ?? "Agadir travel guides from AgadirDriver.com." }], links: [{ rel: "canonical", href: `https://agadirdriver.com/blog/${params.slug}` }] };
+    return { meta: [{ title: post ? `${post.title} | AgadirDriver.com` : "Agadir Travel Guide | AgadirDriver.com" }, { name: "description", content: post?.description ?? "Agadir travel guides from AgadirDriver.com." }, { property: "og:type", content: "article" }, { property: "og:image", content: "https://agadirdriver.com/assets/agadir88/hero-desktop-v2.jpg" }], links: [{ rel: "canonical", href: `https://agadirdriver.com/blog/${params.slug}` }] };
   },
   component: BlogArticle,
 });

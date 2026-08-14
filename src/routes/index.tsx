@@ -20,18 +20,19 @@ import { useI18n } from "../lib/i18n";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Agadir Driver — Chauffeur privé & transferts premium à Agadir" },
+      { title: "Agadir Airport Transfer & Private Driver | AgadirDriver.com" },
       {
         name: "description",
         content:
-          "Réservez un chauffeur privé à Agadir, Taghazout et partout au Maroc. Transferts aéroport, trajets ville à ville et location à l'heure, prix fixes.",
+          "Book an Agadir airport transfer or private driver to Agadir, Taghazout, Tamraght, and nearby destinations via WhatsApp.",
       },
-      { property: "og:title", content: "Agadir Driver — Chauffeur privé & transferts premium à Agadir" },
+      { property: "og:title", content: "Agadir Airport Transfer & Private Driver | AgadirDriver.com" },
       {
         property: "og:description",
-        content: "Réservez un chauffeur privé à Agadir, Taghazout et partout au Maroc. Transferts aéroport, trajets ville à ville et location à l'heure, prix fixes.",
+        content: "Book an Agadir airport transfer or private driver to Agadir, Taghazout, Tamraght, and nearby destinations via WhatsApp.",
       },
       { property: "og:type", content: "website" },
+      { property: "og:image", content: "https://agadirdriver.com/assets/agadir88/hero-desktop-v2.jpg" },
       { property: "og:url", content: "/" },
     ],
     links: [{ rel: "canonical", href: "/" }],
@@ -86,7 +87,7 @@ function Index() {
           <picture className="absolute inset-0 hidden lg:block">
             <img
               src={heroDesktop.url}
-              alt="Passagère élégante à l'arrière d'une berline avec chauffeur privé"
+              alt="Passenger in a private chauffeur car during an Agadir airport transfer"
               className="h-full w-full object-cover object-[70%_22%]"
             />
           </picture>
@@ -99,7 +100,7 @@ function Index() {
           <div className="relative h-[52vh] min-h-[360px] w-full lg:hidden">
             <img
               src={heroMobile.url}
-              alt="Passagère élégante à l'arrière d'une berline avec chauffeur privé"
+              alt="Passenger in a private chauffeur car during an Agadir airport transfer"
               className="h-full w-full object-cover object-[68%_12%]"
             />
             <div
@@ -111,11 +112,11 @@ function Index() {
                 <span className="h-1.5 w-1.5 rounded-full bg-accent" />
                 {t("hero.badge")}
               </span>
-              <h1 className="mt-3 text-[2.1rem] leading-[1.08] font-extrabold tracking-[-0.035em] text-white sm:text-5xl sm:leading-[1]">
+              <div role="heading" aria-level={1} className="mt-3 text-[2.1rem] leading-[1.08] font-extrabold tracking-[-0.035em] text-white sm:text-5xl sm:leading-[1]">
                 {t("hero.title1")}
                 <br />
                 <span className="text-accent">{t("hero.title2")}</span> {t("hero.title3")}
-              </h1>
+              </div>
               <p className="mt-3 max-w-[520px] text-[14px] leading-relaxed text-white/70 sm:text-base">
                 {t("hero.subMobile")}
               </p>

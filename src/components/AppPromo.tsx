@@ -151,7 +151,7 @@ export default function AppPromo() {
             <div className="relative w-[260px] pt-8 sm:w-[320px] md:w-[280px] md:pt-0 lg:w-[500px]">
               <img
                 src={appMockup.url}
-                alt="Application Agadir Driver sur smartphone"
+                alt="AgadirDriver booking app on smartphone for airport transfers in Agadir"
                 loading="lazy"
                 className="w-full object-contain"
               />

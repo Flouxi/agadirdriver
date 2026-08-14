@@ -65,7 +65,7 @@ export default function Header({ onNavClick }: HeaderProps) {
               className="flex items-center gap-1.5 transition-colors hover:text-white"
             >
               <Phone size={12} className="text-accent" />
-              +212 060 641 9700
+              +212 673 787 604
             </a>
           </div>
           <div className="flex items-center gap-4">
@@ -211,7 +211,7 @@ export default function Header({ onNavClick }: HeaderProps) {
                 className="flex items-center gap-2 px-1 text-[12px] text-white/50 hover:text-white"
               >
                 <Phone size={12} className="text-accent" />
-                {t('top.support')} · +212 060 641 9700
+                {t('top.support')} · +212 673 787 604
               </a>
             </div>
           </div>
