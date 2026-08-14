@@ -10,12 +10,46 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AgadirAirportTaxiRouteImport } from './routes/agadir-airport-taxi'
+import { Route as AgadirAirportTransferRouteImport } from './routes/agadir-airport-transfer'
+import { Route as AgadirTaxiRouteImport } from './routes/agadir-taxi'
+import { Route as AirportTransferTaghazoutRouteImport } from './routes/airport-transfer-taghazout'
+import { Route as AirportTransferTamraghtRouteImport } from './routes/airport-transfer-tamraght'
 import { Route as CheckoutRouteImport } from './routes/checkout'
+import { Route as PrivateDriverAgadirRouteImport } from './routes/private-driver-agadir'
 import { Route as ReservationRouteImport } from './routes/reservation'
+import { Route as BlogIndexRouteImport } from './routes/blog/index'
+import { Route as BlogSlugRouteImport } from './routes/blog/$slug'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AgadirAirportTaxiRoute = AgadirAirportTaxiRouteImport.update({
+  id: '/agadir-airport-taxi',
+  path: '/agadir-airport-taxi',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AgadirAirportTransferRoute = AgadirAirportTransferRouteImport.update({
+  id: '/agadir-airport-transfer',
+  path: '/agadir-airport-transfer',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AgadirTaxiRoute = AgadirTaxiRouteImport.update({
+  id: '/agadir-taxi',
+  path: '/agadir-taxi',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AirportTransferTaghazoutRoute =
+  AirportTransferTaghazoutRouteImport.update({
+    id: '/airport-transfer-taghazout',
+    path: '/airport-transfer-taghazout',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const AirportTransferTamraghtRoute = AirportTransferTamraghtRouteImport.update({
+  id: '/airport-transfer-tamraght',
+  path: '/airport-transfer-tamraght',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CheckoutRoute = CheckoutRouteImport.update({
@@ -23,40 +57,121 @@ const CheckoutRoute = CheckoutRouteImport.update({
   path: '/checkout',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PrivateDriverAgadirRoute = PrivateDriverAgadirRouteImport.update({
+  id: '/private-driver-agadir',
+  path: '/private-driver-agadir',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ReservationRoute = ReservationRouteImport.update({
   id: '/reservation',
   path: '/reservation',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BlogIndexRoute = BlogIndexRouteImport.update({
+  id: '/blog/',
+  path: '/blog/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BlogSlugRoute = BlogSlugRouteImport.update({
+  id: '/blog/$slug',
+  path: '/blog/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/agadir-airport-taxi': typeof AgadirAirportTaxiRoute
+  '/agadir-airport-transfer': typeof AgadirAirportTransferRoute
+  '/agadir-taxi': typeof AgadirTaxiRoute
+  '/airport-transfer-taghazout': typeof AirportTransferTaghazoutRoute
+  '/airport-transfer-tamraght': typeof AirportTransferTamraghtRoute
   '/checkout': typeof CheckoutRoute
+  '/private-driver-agadir': typeof PrivateDriverAgadirRoute
   '/reservation': typeof ReservationRoute
+  '/blog/$slug': typeof BlogSlugRoute
+  '/blog/': typeof BlogIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/agadir-airport-taxi': typeof AgadirAirportTaxiRoute
+  '/agadir-airport-transfer': typeof AgadirAirportTransferRoute
+  '/agadir-taxi': typeof AgadirTaxiRoute
+  '/airport-transfer-taghazout': typeof AirportTransferTaghazoutRoute
+  '/airport-transfer-tamraght': typeof AirportTransferTamraghtRoute
   '/checkout': typeof CheckoutRoute
+  '/private-driver-agadir': typeof PrivateDriverAgadirRoute
   '/reservation': typeof ReservationRoute
+  '/blog/$slug': typeof BlogSlugRoute
+  '/blog': typeof BlogIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/agadir-airport-taxi': typeof AgadirAirportTaxiRoute
+  '/agadir-airport-transfer': typeof AgadirAirportTransferRoute
+  '/agadir-taxi': typeof AgadirTaxiRoute
+  '/airport-transfer-taghazout': typeof AirportTransferTaghazoutRoute
+  '/airport-transfer-tamraght': typeof AirportTransferTamraghtRoute
   '/checkout': typeof CheckoutRoute
+  '/private-driver-agadir': typeof PrivateDriverAgadirRoute
   '/reservation': typeof ReservationRoute
+  '/blog/$slug': typeof BlogSlugRoute
+  '/blog/': typeof BlogIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/checkout' | '/reservation'
+  fullPaths:
+    | '/'
+    | '/agadir-airport-taxi'
+    | '/agadir-airport-transfer'
+    | '/agadir-taxi'
+    | '/airport-transfer-taghazout'
+    | '/airport-transfer-tamraght'
+    | '/checkout'
+    | '/private-driver-agadir'
+    | '/reservation'
+    | '/blog/$slug'
+    | '/blog/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/checkout' | '/reservation'
-  id: '__root__' | '/' | '/checkout' | '/reservation'
+  to:
+    | '/'
+    | '/agadir-airport-taxi'
+    | '/agadir-airport-transfer'
+    | '/agadir-taxi'
+    | '/airport-transfer-taghazout'
+    | '/airport-transfer-tamraght'
+    | '/checkout'
+    | '/private-driver-agadir'
+    | '/reservation'
+    | '/blog/$slug'
+    | '/blog'
+  id:
+    | '__root__'
+    | '/'
+    | '/agadir-airport-taxi'
+    | '/agadir-airport-transfer'
+    | '/agadir-taxi'
+    | '/airport-transfer-taghazout'
+    | '/airport-transfer-tamraght'
+    | '/checkout'
+    | '/private-driver-agadir'
+    | '/reservation'
+    | '/blog/$slug'
+    | '/blog/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AgadirAirportTaxiRoute: typeof AgadirAirportTaxiRoute
+  AgadirAirportTransferRoute: typeof AgadirAirportTransferRoute
+  AgadirTaxiRoute: typeof AgadirTaxiRoute
+  AirportTransferTaghazoutRoute: typeof AirportTransferTaghazoutRoute
+  AirportTransferTamraghtRoute: typeof AirportTransferTamraghtRoute
   CheckoutRoute: typeof CheckoutRoute
+  PrivateDriverAgadirRoute: typeof PrivateDriverAgadirRoute
   ReservationRoute: typeof ReservationRoute
+  BlogSlugRoute: typeof BlogSlugRoute
+  BlogIndexRoute: typeof BlogIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -68,11 +183,53 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/agadir-airport-taxi': {
+      id: '/agadir-airport-taxi'
+      path: '/agadir-airport-taxi'
+      fullPath: '/agadir-airport-taxi'
+      preLoaderRoute: typeof AgadirAirportTaxiRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/agadir-airport-transfer': {
+      id: '/agadir-airport-transfer'
+      path: '/agadir-airport-transfer'
+      fullPath: '/agadir-airport-transfer'
+      preLoaderRoute: typeof AgadirAirportTransferRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/agadir-taxi': {
+      id: '/agadir-taxi'
+      path: '/agadir-taxi'
+      fullPath: '/agadir-taxi'
+      preLoaderRoute: typeof AgadirTaxiRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/airport-transfer-taghazout': {
+      id: '/airport-transfer-taghazout'
+      path: '/airport-transfer-taghazout'
+      fullPath: '/airport-transfer-taghazout'
+      preLoaderRoute: typeof AirportTransferTaghazoutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/airport-transfer-tamraght': {
+      id: '/airport-transfer-tamraght'
+      path: '/airport-transfer-tamraght'
+      fullPath: '/airport-transfer-tamraght'
+      preLoaderRoute: typeof AirportTransferTamraghtRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/checkout': {
       id: '/checkout'
       path: '/checkout'
       fullPath: '/checkout'
       preLoaderRoute: typeof CheckoutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/private-driver-agadir': {
+      id: '/private-driver-agadir'
+      path: '/private-driver-agadir'
+      fullPath: '/private-driver-agadir'
+      preLoaderRoute: typeof PrivateDriverAgadirRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/reservation': {
@@ -82,13 +239,35 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ReservationRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/blog/': {
+      id: '/blog/'
+      path: '/blog'
+      fullPath: '/blog/'
+      preLoaderRoute: typeof BlogIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/blog/$slug': {
+      id: '/blog/$slug'
+      path: '/blog/$slug'
+      fullPath: '/blog/$slug'
+      preLoaderRoute: typeof BlogSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AgadirAirportTaxiRoute: AgadirAirportTaxiRoute,
+  AgadirAirportTransferRoute: AgadirAirportTransferRoute,
+  AgadirTaxiRoute: AgadirTaxiRoute,
+  AirportTransferTaghazoutRoute: AirportTransferTaghazoutRoute,
+  AirportTransferTamraghtRoute: AirportTransferTamraghtRoute,
   CheckoutRoute: CheckoutRoute,
+  PrivateDriverAgadirRoute: PrivateDriverAgadirRoute,
   ReservationRoute: ReservationRoute,
+  BlogSlugRoute: BlogSlugRoute,
+  BlogIndexRoute: BlogIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
