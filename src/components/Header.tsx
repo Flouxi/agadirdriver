@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Globe, User, Menu, X, ChevronDown, Phone } from 'lucide-react';
 import { AGADIR_DRIVER_LOGO_URL } from '../lib/brand-images';
 import { LANGUAGE_OPTIONS, useI18n } from '../lib/i18n';
+import { BUSINESS } from '../data/seo';
 
 interface HeaderProps {
   onNavClick?: (section: string) => void;
@@ -12,7 +13,7 @@ export default function Header({ onNavClick }: HeaderProps) {
   const [langDropdownOpen, setLangDropdownOpen] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const { lang: currentLang, setLang: setCurrentLang, t } = useI18n();
-  const whatsappLink = 'https://wa.me/2120606419700?text=Bonjour%20Agadir%20Driver%2C%20j%27ai%20besoin%20d%27aide%20pour%20mon%20transport.';
+  const whatsappLink = `${BUSINESS.whatsapp}?text=Bonjour%20Agadir%20Driver%2C%20j%27ai%20besoin%20d%27aide%20pour%20mon%20transport.`;
 
   const navItems = [
     { label: t('nav.airport'), id: 'airport' },
@@ -65,7 +66,7 @@ export default function Header({ onNavClick }: HeaderProps) {
               className="flex items-center gap-1.5 transition-colors hover:text-white"
             >
               <Phone size={12} className="text-accent" />
-              +212 673 787 604
+              {BUSINESS.phone}
             </a>
           </div>
           <div className="flex items-center gap-4">
@@ -211,7 +212,7 @@ export default function Header({ onNavClick }: HeaderProps) {
                 className="flex items-center gap-2 px-1 text-[12px] text-white/50 hover:text-white"
               >
                 <Phone size={12} className="text-accent" />
-                {t('top.support')} · +212 673 787 604
+                {t('top.support')} · {BUSINESS.phone}
               </a>
             </div>
           </div>

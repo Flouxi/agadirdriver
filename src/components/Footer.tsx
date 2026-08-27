@@ -1,5 +1,6 @@
 import { Facebook, Instagram, Twitter, MessageCircle, Phone, Mail, Star } from 'lucide-react';
 import { AGADIR_DRIVER_LOGO_URL } from '../lib/brand-images';
+import { BUSINESS } from '../data/seo';
 
 const AIRPORTS = [
   'Aéroport Agadir Al Massira (AGA)',
@@ -33,8 +34,7 @@ const COMPANY = [
 ];
 
 export default function Footer() {
-  const whatsappNumber = '2120606419700';
-  const whatsappLink = `https://wa.me/${whatsappNumber}?text=Bonjour%20Agadir%20Driver%2C%20j%27ai%20besoin%20d%27aide%20pour%20mon%20transport.`;
+  const whatsappLink = `${BUSINESS.whatsapp}?text=Bonjour%20Agadir%20Driver%2C%20j%27ai%20besoin%20d%27aide%20pour%20mon%20transport.`;
   const supportEmail = 'support@agadirdriver.com';
 
   return (
@@ -70,11 +70,11 @@ export default function Footer() {
               <span className="block text-[12px] font-semibold tracking-wide text-white/40 uppercase">Assistance 24/7</span>
               <div className="flex items-center gap-2">
                 <Phone size={14} strokeWidth={1.75} className="text-accent" />
-                <span>+212 673 787 604</span>
+                <span>{BUSINESS.phone}</span>
               </div>
               <a href={whatsappLink} target="_blank" rel="noreferrer" className="flex items-center gap-2 transition-colors hover:text-white">
                 <MessageCircle size={14} strokeWidth={1.75} className="text-accent" />
-                <span>WhatsApp : +212 673 787 604</span>
+                <span>WhatsApp : {BUSINESS.phone}</span>
               </a>
               <a href={`mailto:${supportEmail}`} className="flex items-center gap-2 transition-colors hover:text-white">
                 <Mail size={14} strokeWidth={1.75} className="text-accent" />
