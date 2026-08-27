@@ -81,8 +81,13 @@ export default function RouteMap({ from, to, pickupTime, dropoffTime }: Props) {
           const json = await res.json();
           const coords: [number, number][] | undefined =
             json?.routes?.[0]?.geometry?.coordinates;
-          if (coords && coords.length > 1) {
-            points = coords.map(([lng, lat]) => [lat, lng] as [number, number]);
+          if (Array.isArray(coords) && coords.length > 1) {
+            points = coords.map((c) => {
+              if (Array.isArray(c) && c.length >= 2) {
+                return [c[1], c[0]] as [number, number];
+              }
+              return [0, 0] as [number, number];
+            }).filter(p => p[0] !== 0 || p[1] !== 0);
           }
         }
       } catch {
@@ -91,8 +96,10 @@ export default function RouteMap({ from, to, pickupTime, dropoffTime }: Props) {
       if (cancelled) return;
 
       // White halo + dark line, following real roads
-      L.polyline(points, { color: "#ffffff", weight: 8, opacity: 0.95 }).addTo(map);
-      L.polyline(points, { color: "#111827", weight: 4, opacity: 1 }).addTo(map);
+      if (points && points.length > 0) {
+        L.polyline(points, { color: "#ffffff", weight: 8, opacity: 0.95 }).addTo(map);
+        L.polyline(points, { color: "#111827", weight: 4, opacity: 1 }).addTo(map);
+      }
 
       const pickupIcon = L.divIcon({
         className: "",
@@ -106,12 +113,19 @@ export default function RouteMap({ from, to, pickupTime, dropoffTime }: Props) {
         iconSize: [22, 28],
         iconAnchor: [11, 28],
       });
-      L.marker([a.lat, a.lng], { icon: pickupIcon }).addTo(map);
-      L.marker([b.lat, b.lng], { icon: dropIcon }).addTo(map);
+      
+      if (a && typeof a.lat === 'number') {
+        L.marker([a.lat, a.lng], { icon: pickupIcon }).addTo(map);
+      }
+      if (b && typeof b.lat === 'number') {
+        L.marker([b.lat, b.lng], { icon: dropIcon }).addTo(map);
+      }
 
       // Fit bounds around the full route
-      const bounds = L.latLngBounds(points.map(([lat, lng]) => [lat, lng]));
-      map.fitBounds(bounds, { padding: [60, 60] });
+      if (points && points.length > 0) {
+        const bounds = L.latLngBounds(points.map(([lat, lng]) => [lat, lng]));
+        map.fitBounds(bounds, { padding: [60, 60] });
+      }
     })();
 
     return () => {

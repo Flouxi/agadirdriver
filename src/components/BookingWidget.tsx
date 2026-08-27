@@ -27,7 +27,7 @@ export default function BookingWidget({ onBookingComplete, onVehicleSelected, in
   const [bookingType, setBookingType] = useState<'transfer' | 'hourly'>('transfer');
 
   // Form States
-  const [fromLocation, setFromLocation] = useState(initialToLocation ? 'Aéroport Agadir-Al Massira (AGA)' : '');
+  const [fromLocation, setFromLocation] = useState(initialToLocation ? 'Aéroport Agadir Al Massira (AGA)' : '');
   const [toLocation, setToLocation] = useState(initialToLocation);
   const [date, setDate] = useState('2026-07-19');
   const [time, setTime] = useState('13:45');

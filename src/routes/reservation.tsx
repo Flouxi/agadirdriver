@@ -19,7 +19,7 @@ import { VEHICLES } from "../data";
 import { calculateRoutePrice } from "../lib/pricing";
 
 const searchSchema = z.object({
-  from: z.string().optional().default("Aéroport Agadir-Al Massira (AGA)"),
+  from: z.string().optional().default("Aéroport Agadir Al Massira (AGA)"),
   to: z.string().optional().default("Taghazout (Hôtel / Surf Camp)"),
   date: z.string().optional().default("2026-07-19"),
   time: z.string().optional().default("13:45"),
@@ -116,8 +116,8 @@ function ReservationPage() {
   }, [from, to]);
 
 
-  const [selectedId, setSelectedId] = useState<string>(vehiclesWithPricing[0].vehicle.id);
-  const selected = vehiclesWithPricing.find((x) => x.vehicle.id === selectedId)!;
+  const [selectedId, setSelectedId] = useState<string>(vehiclesWithPricing[0]?.vehicle.id || "");
+  const selected = vehiclesWithPricing.find((x) => x.vehicle.id === selectedId) ?? vehiclesWithPricing[0];
 
   const fromCity = shortCity(from);
   const toCity = shortCity(to);
@@ -359,7 +359,7 @@ function ReservationPage() {
                   <div className="flex items-center justify-between text-[14px]">
                     <span className="text-gray-700">Total</span>
                     <span className="font-bold text-gray-900">
-                      EUR {selected.price.toFixed(2)}
+                      EUR {selected?.price?.toFixed(2) || "0.00"}
                     </span>
                   </div>
                 </div>
@@ -456,7 +456,7 @@ function ReservationPage() {
             <div className="flex items-baseline gap-2">
               <span className="text-[12px] text-gray-500">Total</span>
               <span className="text-[17px] font-bold text-gray-900">
-                EUR {selected.price.toFixed(2)}
+                EUR {selected?.price?.toFixed(2) || "0.00"}
               </span>
             </div>
             <button className="inline-flex items-center gap-1 text-[12px] text-gray-500 hover:text-gray-900 cursor-pointer">

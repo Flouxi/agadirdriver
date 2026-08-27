@@ -59,6 +59,7 @@ function Index() {
   };
 
   const handleNavScroll = (sectionId: string) => {
+    if (typeof window === "undefined") return;
     if (sectionId === "hero") {
       window.scrollTo({ top: 0, behavior: "smooth" });
       return;
@@ -86,7 +87,7 @@ function Index() {
           {/* Desktop: full-bleed background on the right */}
           <picture className="absolute inset-0 hidden lg:block">
             <img
-              src={heroDesktop.url}
+              src={heroDesktop?.url || ""}
               alt="Passenger in a private chauffeur car during an Agadir airport transfer"
               className="h-full w-full object-cover object-[70%_22%]"
             />
@@ -99,7 +100,7 @@ function Index() {
           {/* Mobile: smaller top banner so the model's face shows above the form */}
           <div className="relative h-[52vh] min-h-[360px] w-full lg:hidden">
             <img
-              src={heroMobile.url}
+              src={heroMobile?.url || ""}
               alt="Passenger in a private chauffeur car during an Agadir airport transfer"
               className="h-full w-full object-cover object-[68%_12%]"
             />

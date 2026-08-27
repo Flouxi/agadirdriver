@@ -18,7 +18,7 @@ import Header from "../components/Header";
 import { VEHICLES } from "../data";
 
 const searchSchema = z.object({
-  from: z.string().default("Aéroport Agadir-Al Massira (AGA)"),
+  from: z.string().default("Aéroport Agadir Al Massira (AGA)"),
   to: z.string().default("Taghazout (Hôtel / Surf Camp)"),
   date: z.string().default("2026-07-19"),
   time: z.string().default("13:45"),

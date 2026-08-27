@@ -231,7 +231,7 @@ export const SERVICE_ITEMS: ServiceItem[] = [
 ];
 
 export const MOROCCAN_AIRPORTS = [
-  'Aéroport Agadir-Al Massira (AGA)',
+  'Aéroport Agadir Al Massira (AGA)',
   'Aéroport Marrakech-Ménara (RAK)',
   'Aéroport Casablanca-Mohammed V (CMN)',
   'Aéroport Essaouira-Mogador (ESU)',
