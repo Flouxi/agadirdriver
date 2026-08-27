@@ -244,7 +244,7 @@ function CheckoutPage() {
                     value={form.email}
                     onChange={set("email")}
                     error={errors.email}
-                    placeholder="support@agadirdriver.com"
+                    placeholder="email@example.com"
                   />
                   <Field
                     label="Téléphone"
@@ -252,7 +252,7 @@ function CheckoutPage() {
                     value={form.phone}
                     onChange={set("phone")}
                     error={errors.phone}
-                    placeholder="+212 6 12 34 56 78"
+                    placeholder="+212 6XX XX XX XX"
                   />
                 </div>
                 <p className="text-[12px] text-gray-500 mt-3 flex items-center gap-1.5">

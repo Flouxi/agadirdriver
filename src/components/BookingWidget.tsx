@@ -564,7 +564,7 @@ export default function BookingWidget({ onBookingComplete, onVehicleSelected, in
                   <Mail size={16} className="absolute left-3.5 text-gray-400" />
                   <input
                     type="email"
-                    placeholder="support@agadirdriver.com"
+                    placeholder="email@example.com"
                     value={customerEmail}
                     onChange={(e) => setCustomerEmail(e.target.value)}
                     className="w-full pl-10 pr-4 py-3 bg-transparent rounded-xl text-xs font-semibold text-gray-900 focus:outline-none"
@@ -578,7 +578,7 @@ export default function BookingWidget({ onBookingComplete, onVehicleSelected, in
                   <PhoneIcon size={16} className="absolute left-3.5 text-gray-400" />
                   <input
                     type="tel"
-                    placeholder="+33 6 12 34 56 78"
+                    placeholder="+212 6XX XX XX XX"
                     value={customerPhone}
                     onChange={(e) => setCustomerPhone(e.target.value)}
                     className="w-full pl-10 pr-4 py-3 bg-transparent rounded-xl text-xs font-semibold text-gray-900 focus:outline-none"
