@@ -9,7 +9,6 @@ export type MapPoint = { x: number; y: number };
 export const MAP_POSITIONS: Record<string, MapPoint> = {
   // Airports
   "Aéroport Agadir Al Massira (AGA)": { x: 103, y: 893 },
-  "Aéroport Agadir Al Massira (AGA)": { x: 103, y: 893 },
   "Aéroport Marrakech Ménara (RAK)": { x: 279, y: 709 },
   "Aéroport Marrakech-Ménara (RAK)": { x: 279, y: 709 },
   "Aéroport Casablanca Mohammed V (CMN)": { x: 331, y: 445 },
@@ -72,8 +71,7 @@ export type LatLng = { lat: number; lng: number };
 
 export const LATLNG_POSITIONS: Record<string, LatLng> = {
   // Airports
-  "Aéroport Agadir Al Massira (AGA)": { lat: 30.3811, lng: -9.5461 },
-  "Aéroport Agadir Al Massira (AGA)": { lat: 30.3811, lng: -9.5461 },
+  "Aéroport Agadir Al Massira (AGA)": { lat: 30.325, lng: -9.41306 },
   "Aéroport Marrakech Ménara (RAK)": { lat: 31.6069, lng: -8.0363 },
   "Aéroport Marrakech-Ménara (RAK)": { lat: 31.6069, lng: -8.0363 },
   "Aéroport Casablanca Mohammed V (CMN)": { lat: 33.3675, lng: -7.5898 },

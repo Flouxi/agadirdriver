@@ -1,21 +1,30 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
-import { ShieldCheck, Star, Clock } from "lucide-react";
-import heroDesktop from "../assets/hero-desktop-v2.jpg.asset.json";
-import heroMobile from "../assets/hero-mobile-v2.jpg.asset.json";
+import { useEffect, useState } from "react";
+import {
+  ArrowRight,
+  ArrowUpRight,
+  MessageCircle,
+  ShieldCheck,
+  Users,
+  Briefcase,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
+import { useRef } from "react";
 import Header from "../components/Header";
-import BookingWidget from "../components/BookingWidget";
-import BookingBar from "../components/BookingBar";
-import AppPromo from "../components/AppPromo";
-import FeaturesGrid from "../components/FeaturesGrid";
-import InfoSection from "../components/InfoSection";
-import VehicleCarousel from "../components/VehicleCarousel";
-import ReviewGrid from "../components/ReviewGrid";
-import DestinationsSection from "../components/DestinationsSection";
-import NewsletterSection from "../components/NewsletterSection";
 import Footer from "../components/Footer";
-import type { VehicleClass } from "../types";
-import { useI18n } from "../lib/i18n";
+import BookingBar from "../components/BookingBar";
+import { VEHICLES, DESTINATIONS, REVIEWS } from "../data";
+import { AIRPORTS, CITIES } from "../data/locations";
+import { BUSINESS } from "../data/seo";
+import { useCopy } from "../lib/copy";
+import { useVehicleText } from "../lib/vehicle-copy";
+import { type BookingSearch } from "../lib/booking";
+import {
+  HOMEPAGE_HERO_IMAGE_URL,
+  INFO_SECTION_PRIMARY_IMAGE_URL,
+  INFO_SECTION_SECONDARY_IMAGE_URL,
+} from "../lib/brand-images";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -24,172 +33,440 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "Book an Agadir airport transfer or private driver to Agadir, Taghazout, Tamraght, and nearby destinations via WhatsApp.",
+          "Private airport transfers, city rides and hourly chauffeurs in Agadir and across Morocco. Compare vehicle fares and request your ride with Agadir Driver.",
       },
-      { property: "og:title", content: "Agadir Airport Transfer & Private Driver | AgadirDriver.com" },
+      { property: "og:title", content: "Your private driver in Morocco | Agadir Driver" },
       {
-        property: "og:description",
-        content: "Book an Agadir airport transfer or private driver to Agadir, Taghazout, Tamraght, and nearby destinations via WhatsApp.",
+        property: "og:image",
+        content: "https://agadirdriver.com/assets/agadir88/hero-desktop-v2.jpg",
       },
-      { property: "og:type", content: "website" },
-      { property: "og:image", content: "https://agadirdriver.com/assets/agadir88/hero-desktop-v2.jpg" },
       { property: "og:url", content: "https://agadirdriver.com/" },
     ],
-    links: [{ rel: "canonical", href: "https://agadirdriver.com/" }],
+    links: [
+      { rel: "canonical", href: "https://agadirdriver.com/" },
+      { rel: "preload", as: "image", href: HOMEPAGE_HERO_IMAGE_URL },
+    ],
   }),
-  component: Index,
+  component: Home,
 });
-
-function Index() {
-  const { t } = useI18n();
-  const [toLocation, setToLocation] = useState("");
-  const [vehicleId, setVehicleId] = useState("");
-  const [bookingKey, setBookingKey] = useState(0);
-
-  const handleSelectDestination = (destinationName: string) => {
-    setToLocation(destinationName);
-    setVehicleId("");
-    setBookingKey((prev) => prev + 1);
+function Home() {
+  const c = useCopy();
+  const vehicleText = useVehicleText();
+  const [mode, setMode] = useState<"transfer" | "hourly">("transfer");
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("service") === "hourly") setMode("hourly");
+  }, []);
+  const [initial, setInitial] = useState<Partial<BookingSearch>>({});
+  const [formKey, setFormKey] = useState(0);
+  const [tab, setTab] = useState("all");
+  const fleet = useRef<HTMLDivElement>(null);
+  const focusBooking = () =>
+    document
+      .getElementById("booking-interface")
+      ?.scrollIntoView({ behavior: "smooth", block: "center" });
+  const prefill = (value: Partial<BookingSearch>) => {
+    setInitial(value);
+    setFormKey((k) => k + 1);
+    focusBooking();
   };
-
-  const handleSelectVehicle = (vehicle: VehicleClass) => {
-    setToLocation("Taghazout (Hôtel / Surf Camp)");
-    setVehicleId(vehicle.id);
-    setBookingKey((prev) => prev + 1);
-  };
-
-  const handleNavScroll = (sectionId: string) => {
-    if (typeof window === "undefined") return;
-    if (sectionId === "hero") {
-      window.scrollTo({ top: 0, behavior: "smooth" });
+  const nav = (section: string) => {
+    if (section === "help") {
+      document.getElementById("help")?.scrollIntoView({ behavior: "smooth" });
       return;
     }
-    let targetElement: HTMLElement | null = null;
-    if (sectionId === "airport" || sectionId === "intercity" || sectionId === "hourly") {
-      targetElement =
-        (window.innerWidth >= 1024 ? document.getElementById("booking-bar") : null) ??
-        document.getElementById("booking-interface");
-    } else if (sectionId === "help" || sectionId === "business") {
-      targetElement = document.getElementById("footer-anchor");
-    }
-    if (targetElement) {
-      targetElement.scrollIntoView({ behavior: "smooth", block: "center" });
-    }
+    setMode(section === "hourly" ? "hourly" : "transfer");
+    focusBooking();
   };
-
+  const services = [
+    {
+      title: c("Across Morocco", "Partout au Maroc"),
+      text: c(
+        "From the Atlantic coast to Marrakech. A private ride, all the way.",
+        "De la côte Atlantique à Marrakech. Votre trajet privé de porte à porte.",
+      ),
+      image: INFO_SECTION_PRIMARY_IMAGE_URL,
+      href: "/agadir-airport-transfer",
+    },
+    {
+      title: c("Professional drivers", "Chauffeurs professionnels"),
+      text: c(
+        "Local knowledge and a personal welcome at every pickup.",
+        "Une connaissance locale et un accueil personnalisé à chaque départ.",
+      ),
+      image: INFO_SECTION_SECONDARY_IMAGE_URL,
+      href: "/private-driver-agadir",
+    },
+    {
+      title: c("Chauffeur by the hour", "Chauffeur à l'heure"),
+      text: c(
+        "Your schedule. Your stops. A driver dedicated to your day.",
+        "Vos horaires, vos arrêts. Un chauffeur dédié à votre journée.",
+      ),
+      image: HOMEPAGE_HERO_IMAGE_URL,
+      href: "/?service=hourly#booking-interface",
+    },
+    {
+      title: c("City rides", "Trajets entre villes"),
+      text: c(
+        "Agadir, Taghazout, Essaouira or Marrakech. Travel at your own pace.",
+        "Agadir, Taghazout, Essaouira ou Marrakech. Voyagez à votre rythme.",
+      ),
+      image: INFO_SECTION_SECONDARY_IMAGE_URL,
+      href: "/agadir-taxi",
+    },
+  ];
   return (
-    <div className="flex min-h-screen flex-col justify-between bg-surface">
-      <Header onNavClick={handleNavScroll} />
-
-      <main className="flex-1">
-        {/* Hero — full-bleed photography, dark gradient overlay, floating booking card */}
-        <section className="relative isolate overflow-hidden bg-ink">
-          {/* Desktop: full-bleed background on the right */}
-          <picture className="absolute inset-0 hidden lg:block">
-            <img
-              src={heroDesktop?.url || ""}
-              alt="Passenger in a private chauffeur car during an Agadir airport transfer"
-              className="h-full w-full object-cover object-[70%_22%]"
-            />
-          </picture>
-          <div
-            aria-hidden="true"
-            className="absolute inset-0 hidden bg-linear-to-b from-ink/75 via-ink/45 to-ink/85 lg:block"
-          />
-
-          {/* Mobile: smaller top banner so the model's face shows above the form */}
-          <div className="relative h-[52vh] min-h-[360px] w-full lg:hidden">
-            <img
-              src={heroMobile?.url || ""}
-              alt="Passenger in a private chauffeur car during an Agadir airport transfer"
-              className="h-full w-full object-cover object-[68%_12%]"
-            />
-            <div
-              aria-hidden="true"
-              className="absolute inset-0 bg-linear-to-b from-ink/20 via-ink/5 to-ink"
-            />
-            <div className="shell absolute bottom-0 left-0 right-0 pb-6">
-              <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/8 px-3.5 py-1.5 text-[11px] font-medium tracking-wide text-white/80 backdrop-blur-sm">
-                <span className="h-1.5 w-1.5 rounded-full bg-accent" />
-                {t("hero.badge")}
-              </span>
-              <div role="heading" aria-level={1} className="mt-3 text-[2.1rem] leading-[1.08] font-extrabold tracking-[-0.035em] text-white sm:text-5xl sm:leading-[1]">
-                {t("hero.title1")}
-                <br />
-                <span className="text-accent">{t("hero.title2")}</span> {t("hero.title3")}
-              </div>
-              <p className="mt-3 max-w-[520px] text-[14px] leading-relaxed text-white/70 sm:text-base">
-                {t("hero.subMobile")}
-              </p>
-            </div>
-          </div>
-
-          {/* Mobile / tablet: stacked card */}
-          <div className="shell relative py-8 sm:py-12 lg:hidden">
-            <BookingWidget
-              key={bookingKey}
-              initialToLocation={toLocation}
-              initialVehicleId={vehicleId}
-            />
-            <p className="mt-5 flex flex-wrap items-center gap-x-2 text-[12px] font-medium text-white/60">
-              <span>{t("hero.fixedPrice")}</span>
-              <span className="text-accent">·</span>
-              <span>{t("hero.freeCancel")}</span>
-              <span className="text-accent">·</span>
-              <span>4.9/5</span>
+    <div className="ad-site">
+      <a className="ad-skip" href="#main-content">
+        {c("Skip to content", "Aller au contenu")}
+      </a>
+      <div className="ad-hero-wrap">
+        <img className="ad-hero-image" src={HOMEPAGE_HERO_IMAGE_URL} alt="" fetchPriority="high" />
+        <Header overlay onNavClick={nav} />
+        <main id="main-content" className="ad-shell ad-hero">
+          <div className="ad-hero-copy">
+            <h1>
+              {c("Your reliable private", "Votre chauffeur privé")}
+              <br />
+              {c("driver in Morocco", "de confiance au Maroc")}
+            </h1>
+            <p>
+              {c(
+                "Airport transfers. City rides. A better way to arrive.",
+                "Transferts aéroport. Trajets entre villes. Voyagez sereinement.",
+              )}
             </p>
           </div>
-
-          {/* Desktop: centered headline over a full-width booking bar */}
-          <div className="shell relative hidden lg:block lg:pt-24 lg:pb-14">
-            <div className="mx-auto max-w-3xl text-center">
-              <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/8 px-3.5 py-1.5 text-[12px] font-medium tracking-wide text-white/80 backdrop-blur-sm">
-                <span className="h-1.5 w-1.5 rounded-full bg-accent" />
-                {t("hero.badge")}
-              </span>
-              <h1 className="mt-6 text-[3.5rem] leading-[1.05] font-extrabold tracking-[-0.035em] text-white">
-                {t("hero.title1")}
-                <br />
-                <span className="text-accent">{t("hero.title2")}</span> {t("hero.title3")}
-              </h1>
-              <p className="mx-auto mt-5 max-w-xl text-lg leading-relaxed text-white/70">
-                {t("hero.subDesktop")}
+          <BookingBar key={formKey} initial={initial} mode={mode} />
+          <div className="ad-hero-proof">
+            <span>
+              {c(
+                "Local expertise · Private vehicles · Clear pricing",
+                "Expertise locale · Véhicules privés · Tarifs transparents",
+              )}
+            </span>
+            <a href={BUSINESS.whatsapp} target="_blank" rel="noreferrer">
+              <MessageCircle size={16} />
+              {c("A real team, here to help", "Une équipe à votre écoute")}
+            </a>
+          </div>
+        </main>
+      </div>
+      <section className="ad-section ad-how">
+        <div className="ad-shell">
+          <div className="ad-section-heading">
+            <span className="ad-eyebrow">
+              {c("From booking to arrival", "Du départ à l'arrivée")}
+            </span>
+            <h2>{c("How it works", "Comment ça marche")}</h2>
+            <p>
+              {c(
+                "A few simple steps. A smoother journey.",
+                "Quelques étapes simples. Un voyage plus serein.",
+              )}
+            </p>
+          </div>
+          <div className="ad-three-grid">
+            {[
+              [
+                c("Choose your ride", "Choisissez votre trajet"),
+                c(
+                  "Enter your route and compare vehicles for your group.",
+                  "Indiquez votre itinéraire et comparez les véhicules adaptés.",
+                ),
+              ],
+              [
+                c("Confirm with our team", "Confirmez avec notre équipe"),
+                c(
+                  "Send your request. We confirm the fare, availability and pickup details.",
+                  "Envoyez votre demande. Nous confirmons le tarif, la disponibilité et le départ.",
+                ),
+              ],
+              [
+                c("Enjoy the journey", "Profitez du voyage"),
+                c(
+                  "Meet your driver and settle in, all the way to your destination.",
+                  "Retrouvez votre chauffeur et profitez du trajet jusqu'à destination.",
+                ),
+              ],
+            ].map(([title, text], i) => (
+              <article key={title}>
+                <span className="ad-step-number">{i + 1}</span>
+                <h3>{title}</h3>
+                <p>{text}</p>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+      <section className="ad-section ad-services" id="services">
+        <div className="ad-shell">
+          <h2>{c("Core services", "Nos services")}</h2>
+          <div className="ad-service-grid">
+            {services.map((service) => (
+              <a className="ad-service-card" key={service.title} href={service.href}>
+                <div className="ad-service-photo">
+                  <img src={service.image} alt="" loading="lazy" />
+                </div>
+                <div>
+                  <h3>{service.title}</h3>
+                  <p>{service.text}</p>
+                  <span>
+                    {c("Details", "Découvrir")}
+                    <ArrowUpRight size={16} />
+                  </span>
+                </div>
+              </a>
+            ))}
+          </div>
+        </div>
+      </section>
+      <section className="ad-section">
+        <div className="ad-shell">
+          <div className="ad-heading-row">
+            <div>
+              <h2>{c("Comfort for every kind of journey", "Le confort pour chaque voyage")}</h2>
+              <p>
+                {c(
+                  "A private vehicle, with room for everyone.",
+                  "Un véhicule privé, de la place pour tous.",
+                )}
               </p>
             </div>
-
-            <div className="mt-10">
-              <BookingBar />
+            <div className="ad-carousel-controls">
+              <button
+                aria-label={c("Previous vehicles", "Véhicules précédents")}
+                onClick={() => fleet.current?.scrollBy({ left: -340, behavior: "smooth" })}
+              >
+                <ChevronLeft size={20} />
+              </button>
+              <button
+                aria-label={c("Next vehicles", "Véhicules suivants")}
+                onClick={() => fleet.current?.scrollBy({ left: 340, behavior: "smooth" })}
+              >
+                <ChevronRight size={20} />
+              </button>
             </div>
-
-            <div className="mt-6 flex items-center justify-center gap-6 text-[13px] font-medium text-white/65">
-              {[
-                { icon: Star, value: "4.9/5", label: t("hero.reviews") },
-                { icon: ShieldCheck, value: t("hero.insured"), label: t("hero.fleet") },
-                { icon: Clock, value: "24/7", label: t("hero.support") },
-              ].map(({ icon: Icon, value, label }) => (
-                <span key={value} className="flex items-center gap-2">
-                  <Icon size={16} strokeWidth={1.75} className="text-accent" />
-                  <span className="text-white">{value}</span>
-                  <span className="text-white/50">{label}</span>
+          </div>
+          <div className="ad-fleet-track" ref={fleet}>
+            {VEHICLES.map((vehicle) => (
+              <button
+                className="ad-fleet-card"
+                key={vehicle.id}
+                onClick={() => prefill({ vehicleId: vehicle.id })}
+              >
+                <img src={vehicle.image} alt={vehicleText(vehicle.name)} loading="lazy" />
+                <h3>{vehicleText(vehicle.name)}</h3>
+                <p>{vehicleText(vehicle.carModels)}</p>
+                <div>
+                  <span>
+                    <Users size={15} />
+                    {vehicle.passengers}
+                  </span>
+                  <span>
+                    <Briefcase size={15} />
+                    {vehicle.luggage}
+                  </span>
+                  <span className="ad-fleet-link">
+                    {c("Choose", "Choisir")}
+                    <ArrowRight size={15} />
+                  </span>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      </section>
+      <section className="ad-section ad-soft">
+        <div className="ad-shell">
+          <div className="ad-heading-row">
+            <div>
+              <h2>{c("Customer stories", "Nos voyageurs témoignent")}</h2>
+              <p>
+                {c(
+                  "Experiences shared by our passengers.",
+                  "Des expériences partagées par nos passagers.",
+                )}
+              </p>
+              <small>
+                {c(
+                  "Testimonials supplied by Agadir Driver.",
+                  "Témoignages fournis par Agadir Driver.",
+                )}
+              </small>
+            </div>
+            <ShieldCheck className="ad-gold" size={36} />
+          </div>
+          <div className="ad-three-grid ad-reviews">
+            {REVIEWS.slice(0, 3).map((review) => (
+              <article key={review.id}>
+                <span className="ad-quote-mark" aria-hidden="true">
+                  “
                 </span>
+                <h3>{review.title}</h3>
+                <p>{review.comment}</p>
+                <strong>{review.author}</strong>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+      <section className="ad-section">
+        <div className="ad-shell">
+          <div className="ad-heading-row">
+            <div>
+              <h2>{c("Destinations", "Destinations")}</h2>
+              <p>
+                {c(
+                  "From the airport to the coast, the city and beyond.",
+                  "De l'aéroport à la côte, aux villes et au-delà.",
+                )}
+              </p>
+            </div>
+            <div className="ad-filter-tabs">
+              {[
+                { id: "all", label: c("All", "Tous") },
+                { id: "airport", label: c("Airports", "Aéroports") },
+                { id: "city", label: c("Cities & resorts", "Villes et resorts") },
+                { id: "ski", label: c("Mountains", "Montagnes") },
+              ].map((item) => (
+                <button
+                  key={item.id}
+                  aria-pressed={tab === item.id}
+                  onClick={() => setTab(item.id)}
+                >
+                  {item.label}
+                </button>
               ))}
             </div>
           </div>
-        </section>
-
-
-        <AppPromo />
-        <FeaturesGrid />
-        <InfoSection />
-        <VehicleCarousel onSelectVehicle={handleSelectVehicle} />
-        <ReviewGrid />
-        <DestinationsSection onSelectDestination={handleSelectDestination} />
-        <NewsletterSection />
-      </main>
-
-      <div id="footer-anchor">
-        <Footer />
-      </div>
+          <div className="ad-destination-grid">
+            {DESTINATIONS.filter((d) => tab === "all" || d.type === tab).map((destination) => (
+              <button
+                className="ad-destination-card"
+                key={destination.id}
+                onClick={() => {
+                  const airport = AIRPORTS.find((a) => a.label.includes(destination.name));
+                  const city = CITIES.find((a) => a.label.includes(destination.name));
+                  prefill(
+                    destination.type === "airport"
+                      ? { from: airport?.label || destination.airport }
+                      : { from: AIRPORTS[0].label, to: city?.label || destination.name },
+                  );
+                }}
+              >
+                <img src={destination.image} alt={destination.name} loading="lazy" />
+                <div>
+                  <small>
+                    {destination.type === "airport"
+                      ? c("Airport transfers", "Transferts aéroport")
+                      : c("Private rides", "Trajets privés")}
+                  </small>
+                  <h3>{destination.name}</h3>
+                  <span>
+                    {destination.airport}
+                    <ArrowUpRight size={17} />
+                  </span>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      </section>
+      <section className="ad-section ad-soft">
+        <div className="ad-shell ad-mobile-promo">
+          <div>
+            <span className="ad-eyebrow">
+              {c("Your journey, at your fingertips", "Votre trajet, à portée de main")}
+            </span>
+            <h2>{c("Take it easy.", "Voyagez l'esprit léger.")}</h2>
+            <p>
+              {c(
+                "Arrange your ride, share your flight details or ask a question. Our team is just a message away.",
+                "Organisez votre trajet, partagez votre numéro de vol ou posez une question. Notre équipe est à un message de vous.",
+              )}
+            </p>
+            <a className="ad-primary" href={BUSINESS.whatsapp} target="_blank" rel="noreferrer">
+              <MessageCircle size={18} />
+              {c("Chat on WhatsApp", "Discuter sur WhatsApp")}
+            </a>
+          </div>
+          <img
+            src="/assets/agadir88/app-mockup-v2.png"
+            loading="lazy"
+            alt={c("Agadir Driver on mobile", "Agadir Driver sur mobile")}
+          />
+        </div>
+      </section>
+      <section className="ad-section" id="help">
+        <div className="ad-shell">
+          <div className="ad-section-heading">
+            <h2>{c("Good to know before you go", "Tout savoir avant de partir")}</h2>
+          </div>
+          <div className="ad-faq">
+            {[
+              [
+                c("How is my booking confirmed?", "Comment ma réservation est-elle confirmée ?"),
+                c(
+                  "After you send your request on WhatsApp, our team confirms the fare, vehicle availability and meeting point. Your request is not a confirmed booking until you receive our reply.",
+                  "Après l'envoi de votre demande sur WhatsApp, notre équipe confirme le tarif, la disponibilité et le lieu de rendez-vous. Votre demande devient une réservation après notre confirmation.",
+                ),
+              ],
+              [
+                c("What if my flight is delayed?", "Et si mon vol est retardé ?"),
+                c(
+                  "Include your flight number with your request. Airport pickups include flight monitoring and up to 60 minutes of waiting for international flights (45 minutes for domestic flights).",
+                  "Ajoutez votre numéro de vol. Les départs aéroport incluent le suivi du vol et jusqu'à 60 minutes d'attente pour les vols internationaux (45 minutes pour les vols intérieurs).",
+                ),
+              ],
+              [
+                c(
+                  "Can I add a return or book for a group?",
+                  "Puis-je ajouter un retour ou réserver pour un groupe ?",
+                ),
+                c(
+                  "Yes. Add your return date in the booking form. Choose up to 17 passengers and we will show vehicles that fit your group. Please tell us about child seats, surfboards and oversized luggage.",
+                  "Oui. Ajoutez la date de retour au formulaire. Choisissez jusqu'à 17 passagers : seuls les véhicules adaptés s'affichent. Précisez les sièges enfants, planches de surf et bagages volumineux.",
+                ),
+              ],
+            ].map(([question, answer]) => (
+              <details key={question}>
+                <summary>
+                  {question}
+                  <PlusIcon />
+                </summary>
+                <p>{answer}</p>
+              </details>
+            ))}
+          </div>
+        </div>
+      </section>
+      <section className="ad-contact-banner">
+        <div className="ad-shell">
+          <div>
+            <h2>
+              {c("A journey worth looking forward to.", "Un voyage qui commence sereinement.")}
+            </h2>
+            <p>
+              {c(
+                "Need a custom itinerary? Let's plan it together.",
+                "Besoin d'un itinéraire sur mesure ? Préparons-le ensemble.",
+              )}
+            </p>
+          </div>
+          <a
+            className="ad-primary"
+            href={"mailto:support@agadirdriver.com?subject=Custom%20journey"}
+          >
+            {c("Plan my journey", "Organiser mon voyage")}
+            <ArrowRight size={18} />
+          </a>
+        </div>
+      </section>
+      <Footer />
     </div>
   );
+}
+function PlusIcon() {
+  return <span aria-hidden="true">+</span>;
 }

@@ -1,255 +1,254 @@
-import React, { useState } from 'react';
-import { MapPin, Calendar, Clock, Plus, Minus, ArrowRight, RefreshCw } from 'lucide-react';
-import { useNavigate } from '@tanstack/react-router';
-import LocationPicker from './LocationPicker';
-import { useI18n } from '../lib/i18n';
+import { useEffect, useState, type FormEvent } from "react";
+import {
+  ArrowRight,
+  ArrowLeftRight,
+  CalendarDays,
+  Car,
+  Clock3,
+  Minus,
+  Plus,
+  MapPin,
+} from "lucide-react";
+import { useNavigate } from "@tanstack/react-router";
+import LocationPicker from "./LocationPicker";
+import {
+  bookingSearchSchema,
+  defaultPickupDate,
+  localDate,
+  nextDate,
+  validateBooking,
+  MAX_PASSENGERS,
+  type BookingSearch,
+} from "../lib/booking";
+import { useCopy } from "../lib/copy";
 
-/**
- * Desktop-only horizontal booking bar (Transfeero-style single row).
- * Mobile keeps the stacked <BookingWidget /> card.
- */
-export default function BookingBar() {
+interface Props {
+  initial?: Partial<BookingSearch>;
+  mode?: "transfer" | "hourly";
+  onSearch?: (booking: BookingSearch) => void;
+  light?: boolean;
+}
+export default function BookingBar({ initial, mode, onSearch, light = false }: Props) {
+  const c = useCopy();
   const navigate = useNavigate();
-  const { t } = useI18n();
-
-  const [bookingType, setBookingType] = useState<'transfer' | 'hourly'>('transfer');
-  const [fromLocation, setFromLocation] = useState('');
-  const [toLocation, setToLocation] = useState('');
-  const [date, setDate] = useState('2026-07-19');
-  const [time, setTime] = useState('13:45');
-  const [passengers, setPassengers] = useState(2);
-  const [durationHours, setDurationHours] = useState(3);
-  const [hasReturn, setHasReturn] = useState(false);
-  const [returnDate, setReturnDate] = useState('2026-07-26');
-  const [returnTime, setReturnTime] = useState('15:00');
-  const [pickerFor, setPickerFor] = useState<null | 'from' | 'to'>(null);
-  const [searching, setSearching] = useState(false);
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!fromLocation || (bookingType === 'transfer' && !toLocation)) {
-      document.getElementById('booking-bar')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      setPickerFor(!fromLocation ? 'from' : 'to');
+  const [booking, setBooking] = useState<BookingSearch>(() =>
+    bookingSearchSchema.parse({ date: defaultPickupDate(), ...initial }),
+  );
+  const [picker, setPicker] = useState<"from" | "to" | null>(null);
+  const [error, setError] = useState("");
+  useEffect(() => {
+    if (mode) setBooking((b) => ({ ...b, type: mode }));
+  }, [mode]);
+  const change = <K extends keyof BookingSearch>(key: K, value: BookingSearch[K]) => {
+    setBooking((b) => ({ ...b, [key]: value }));
+    setError("");
+  };
+  const submit = (event: FormEvent) => {
+    event.preventDefault();
+    const message = validateBooking(booking);
+    if (message) {
+      const messages: Record<string, string> = {
+        from: c("Choose your pickup location.", "Choisissez le lieu de départ."),
+        to: c("Choose your destination.", "Choisissez la destination."),
+        same: c(
+          "Pickup and destination must be different.",
+          "Le départ et l'arrivée doivent être différents.",
+        ),
+        past: c(
+          "Choose a valid pickup date and time in the future (Morocco time).",
+          "Choisissez une date et une heure futures valides (heure du Maroc).",
+        ),
+        return: c(
+          "The return must be after your pickup. Please check its date and time.",
+          "Le retour doit être après le départ. Vérifiez sa date et son heure.",
+        ),
+      };
+      setError(messages[message]);
+      if (message === "from" || message === "to") setPicker(message);
       return;
     }
-    setSearching(true);
-    setTimeout(() => {
-      setSearching(false);
-      navigate({
-        to: '/reservation',
-        search: { from: fromLocation, to: toLocation, date, time, pax: passengers },
-      } as never);
-    }, 600);
+    const next = { ...booking, hasReturn: booking.type === "transfer" && booking.hasReturn };
+    if (onSearch) onSearch(next);
+    else void navigate({ to: "/reservation", search: next });
   };
-
   return (
-    <div className="w-full">
-      <LocationPicker
-        open={pickerFor !== null}
-        onClose={() => setPickerFor(null)}
-        onSelect={(val) => {
-          if (pickerFor === 'from') setFromLocation(val);
-          else if (pickerFor === 'to') setToLocation(val);
-        }}
-        title={pickerFor === 'from' ? t('booking.from') : t('booking.to')}
-      />
-
-      {/* Type switch */}
-      <div className="mb-4 flex justify-start">
-        <div className="inline-flex items-center gap-1 rounded-full border border-white/15 bg-ink/60 p-1 backdrop-blur-md">
-          {([
-            ['transfer', ArrowRight, t('booking.transfer')],
-            ['hourly', Clock, t('booking.hourly')],
-          ] as const).map(([key, Icon, label]) => (
-            <button
-              key={key}
-              type="button"
-              onClick={() => setBookingType(key)}
-              className={`flex cursor-pointer items-center gap-2 rounded-full px-6 py-2.5 text-[14px] font-semibold transition-all ${
-                bookingType === key ? 'bg-white text-ink shadow-soft' : 'text-white/70 hover:text-white'
-              }`}
-            >
-              <Icon size={16} strokeWidth={1.75} />
-              <span>{label}</span>
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <form
-        id="booking-bar"
-        onSubmit={handleSearch}
-        className="rounded-2xl border border-line bg-surface p-2 shadow-float"
+    <div className={"ad-booking " + (light ? "ad-booking-light" : "")} id="booking-interface">
+      <div
+        className="ad-service-tabs"
+        role="tablist"
+        aria-label={c("Service type", "Type de service")}
       >
-        <div className="flex items-stretch">
-          {/* From */}
+        {(["transfer", "hourly"] as const).map((type) => (
           <button
             type="button"
-            onClick={() => setPickerFor('from')}
-            className="group flex min-w-0 flex-[1.25] cursor-pointer items-center gap-3 rounded-xl px-4 py-3 text-left transition-colors hover:bg-surface-alt"
+            key={type}
+            role="tab"
+            aria-selected={booking.type === type}
+            onClick={() => change("type", type)}
           >
-            <MapPin size={18} strokeWidth={1.75} className="shrink-0 text-ink/35" />
-            <span className="block min-w-0">
-              <span className="block text-[12px] text-ink/45">{t('booking.from')}</span>
-              <span className={`block truncate text-[15px] font-medium ${fromLocation ? 'text-ink' : 'text-ink/40'}`}>
-                {fromLocation || t('booking.placeholder')}
-              </span>
+            {type === "transfer" ? <Car size={16} /> : <Clock3 size={16} />}
+            {type === "transfer" ? c("Transfer", "Transfert") : c("By the hour", "À l'heure")}
+          </button>
+        ))}
+      </div>
+      <form onSubmit={submit} noValidate className="ad-booking-card">
+        <div className="ad-booking-fields">
+          <button type="button" className="ad-place-field" onClick={() => setPicker("from")}>
+            <MapPin size={18} />
+            <span>
+              <small>{c("From", "Départ")}</small>
+              <strong>
+                {booking.from || c("Address, airport, hotel…", "Adresse, aéroport, hôtel…")}
+              </strong>
             </span>
           </button>
-
-          <span aria-hidden className="my-2 w-px shrink-0 bg-line" />
-
-          {/* To or duration */}
-          {bookingType === 'transfer' ? (
-            <button
-              type="button"
-              onClick={() => setPickerFor('to')}
-              className="group flex min-w-0 flex-[1.25] cursor-pointer items-center gap-3 rounded-xl px-4 py-3 text-left transition-colors hover:bg-surface-alt"
-            >
-              <MapPin size={18} strokeWidth={1.75} className="shrink-0 text-ink/35" />
-              <span className="block min-w-0">
-                <span className="block text-[12px] text-ink/45">{t('booking.to')}</span>
-                <span className={`block truncate text-[15px] font-medium ${toLocation ? 'text-ink' : 'text-ink/40'}`}>
-                  {toLocation || t('booking.placeholder')}
-                </span>
+          {booking.type === "transfer" ? (
+            <button type="button" className="ad-place-field" onClick={() => setPicker("to")}>
+              <MapPin size={18} />
+              <span>
+                <small>{c("To", "Arrivée")}</small>
+                <strong>
+                  {booking.to || c("Address, airport, hotel…", "Adresse, aéroport, hôtel…")}
+                </strong>
               </span>
             </button>
           ) : (
-            <div className="flex min-w-0 flex-[1.25] items-center gap-3 px-4 py-3">
-              <Clock size={18} strokeWidth={1.75} className="shrink-0 text-ink/35" />
-              <div className="min-w-0">
-                <span className="block text-[12px] text-ink/45">{t('booking.duration')}</span>
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setDurationHours(Math.max(2, durationHours - 1))}
-                    className="flex h-6 w-6 cursor-pointer items-center justify-center rounded-full border border-line text-ink hover:border-ink/30"
-                  >
-                    <Minus size={12} strokeWidth={2} />
-                  </button>
-                  <span className="text-[15px] font-semibold text-ink">{durationHours} h</span>
-                  <button
-                    type="button"
-                    onClick={() => setDurationHours(Math.min(24, durationHours + 1))}
-                    className="flex h-6 w-6 cursor-pointer items-center justify-center rounded-full border border-line text-ink hover:border-ink/30"
-                  >
-                    <Plus size={12} strokeWidth={2} />
-                  </button>
-                </div>
-              </div>
-            </div>
+            <label className="ad-date-field">
+              <Clock3 size={18} />
+              <span>
+                <small>{c("Duration", "Durée")}</small>
+                <select
+                  aria-label={c("Hire duration", "Durée de mise à disposition")}
+                  value={booking.hours}
+                  onChange={(e) => change("hours", Number(e.target.value))}
+                >
+                  {Array.from({ length: 23 }, (_, i) => i + 2).map((h) => (
+                    <option value={h} key={h}>
+                      {h} {c("hours", "heures")}
+                    </option>
+                  ))}
+                </select>
+              </span>
+            </label>
           )}
-
-          <span aria-hidden className="my-2 w-px shrink-0 bg-line" />
-
-          {/* Date + time */}
-          <div className="flex min-w-0 flex-[1.35] items-center gap-3 px-4 py-3">
-            <Calendar size={18} strokeWidth={1.75} className="shrink-0 text-ink/35" />
-            <div className="min-w-0">
-              <span className="block text-[12px] text-ink/45">{t('booking.date')}</span>
-              <div className="flex items-center gap-1">
+          <div className="ad-date-field">
+            <CalendarDays size={18} />
+            <div>
+              <small>{c("Pickup date · Morocco time", "Date de départ · heure du Maroc")}</small>
+              <div className="ad-date-inputs">
                 <input
+                  aria-label={c("Pickup date", "Date de départ")}
                   type="date"
-                  value={date}
-                  onChange={(e) => setDate(e.target.value)}
-                  className="w-[116px] cursor-pointer bg-transparent text-[14px] font-medium text-ink focus:outline-none"
+                  min={localDate()}
+                  value={booking.date}
+                  onChange={(e) => change("date", e.target.value)}
                   required
                 />
                 <input
+                  aria-label={c("Pickup time", "Heure de départ")}
                   type="time"
-                  value={time}
-                  onChange={(e) => setTime(e.target.value)}
-                  className="w-[96px] cursor-pointer bg-transparent text-[14px] font-medium text-ink focus:outline-none"
+                  value={booking.time}
+                  onChange={(e) => change("time", e.target.value)}
                   required
                 />
               </div>
             </div>
           </div>
-
-          <span aria-hidden className="my-2 w-px shrink-0 bg-line" />
-
-          {/* Return */}
-          {bookingType === 'transfer' && (
-            <>
+          {booking.type === "transfer" && (
+            <button
+              type="button"
+              className="ad-return-toggle"
+              aria-expanded={booking.hasReturn}
+              onClick={() =>
+                setBooking((b) => ({
+                  ...b,
+                  hasReturn: !b.hasReturn,
+                  returnDate: b.returnDate || nextDate(b.date),
+                }))
+              }
+            >
+              {booking.hasReturn ? <Minus size={16} /> : <Plus size={16} />}{" "}
+              {booking.hasReturn
+                ? c("Remove return", "Sans retour")
+                : c("Add return", "Ajouter retour")}
+            </button>
+          )}
+          <div className="ad-pax">
+            <small>{c("Passengers", "Passagers")}</small>
+            <div>
               <button
                 type="button"
-                onClick={() => setHasReturn(!hasReturn)}
-                className={`flex shrink-0 cursor-pointer items-center gap-2 rounded-xl px-4 py-3 text-[14px] font-semibold transition-colors ${
-                  hasReturn ? 'text-ink' : 'text-ink/60 hover:bg-surface-alt hover:text-ink'
-                }`}
+                aria-label={c("Fewer passengers", "Moins de passagers")}
+                disabled={booking.pax <= 1}
+                onClick={() => change("pax", booking.pax - 1)}
               >
-                {hasReturn ? <Minus size={16} strokeWidth={2} /> : <Plus size={16} strokeWidth={2} />}
-                <span className="whitespace-nowrap">{t('booking.addReturn')}</span>
+                <Minus size={12} />
               </button>
-              <span aria-hidden className="my-2 w-px shrink-0 bg-line" />
-            </>
-          )}
-
-          {/* Passengers */}
-          <div className="flex shrink-0 items-center gap-3 px-4 py-3">
-            <div>
-              <span className="block text-[12px] text-ink/45">{t('booking.passengers')}</span>
-              <div className="mt-0.5 flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => setPassengers(Math.max(1, passengers - 1))}
-                  className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-full border border-line text-ink transition-all hover:border-ink/30 active:scale-95"
-                  aria-label="-"
-                >
-                  <Minus size={13} strokeWidth={2} />
-                </button>
-                <span className="w-4 text-center text-[15px] font-semibold text-ink">{passengers}</span>
-                <button
-                  type="button"
-                  onClick={() => setPassengers(Math.min(16, passengers + 1))}
-                  className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-full border border-line text-ink transition-all hover:border-ink/30 active:scale-95"
-                  aria-label="+"
-                >
-                  <Plus size={13} strokeWidth={2} />
-                </button>
-              </div>
+              <output aria-live="polite">{booking.pax}</output>
+              <button
+                type="button"
+                aria-label={c("More passengers", "Plus de passagers")}
+                disabled={booking.pax >= MAX_PASSENGERS}
+                onClick={() => change("pax", booking.pax + 1)}
+              >
+                <Plus size={12} />
+              </button>
             </div>
           </div>
-
-          {/* Submit */}
-          <button
-            type="submit"
-            disabled={searching}
-            className="ml-1 flex shrink-0 cursor-pointer items-center justify-center gap-2 rounded-xl bg-ink px-8 text-[15px] font-semibold text-white transition-all hover:bg-ink-soft active:scale-[0.99] disabled:opacity-50"
-          >
-            {searching ? (
-              <RefreshCw className="animate-spin" size={18} strokeWidth={1.75} />
-            ) : (
-              <>
-                <span className="whitespace-nowrap">{t('booking.seePrices')}</span>
-                <ArrowRight size={18} strokeWidth={2} />
-              </>
-            )}
+          <button className="ad-primary ad-search" type="submit">
+            {onSearch ? c("Update ride", "Actualiser") : c("See prices", "Voir les prix")}
+            <ArrowRight size={18} />
           </button>
         </div>
-
-        {/* Return row */}
-        {bookingType === 'transfer' && hasReturn && (
-          <div className="mt-1 flex items-center gap-6 border-t border-line px-4 py-3">
-            <span className="text-[12px] font-semibold text-ink/55">Retour planifié (-10%)</span>
-            <div className="flex items-center gap-3">
-              <Calendar size={16} strokeWidth={1.75} className="text-ink/35" />
+        {booking.type === "transfer" && booking.hasReturn && (
+          <div className="ad-return-fields">
+            <ArrowLeftRight size={18} />
+            <strong>{c("Return pickup", "Départ du retour")}</strong>
+            <label>
+              {c("Date", "Date")}
               <input
+                aria-label={c("Return date", "Date du retour")}
                 type="date"
-                value={returnDate}
-                onChange={(e) => setReturnDate(e.target.value)}
-                className="cursor-pointer bg-transparent text-[14px] font-medium text-ink focus:outline-none"
+                min={booking.date}
+                value={booking.returnDate}
+                onChange={(e) => change("returnDate", e.target.value)}
               />
+            </label>
+            <label>
+              {c("Time", "Heure")}
               <input
+                aria-label={c("Return time", "Heure du retour")}
                 type="time"
-                value={returnTime}
-                onChange={(e) => setReturnTime(e.target.value)}
-                className="cursor-pointer bg-transparent text-[14px] font-medium text-ink focus:outline-none"
+                value={booking.returnTime}
+                onChange={(e) => change("returnTime", e.target.value)}
               />
-            </div>
+            </label>
+            <span>
+              {c(
+                "Both journeys included in the total.",
+                "Les deux trajets sont inclus dans le total.",
+              )}
+            </span>
           </div>
         )}
+        {error && (
+          <p role="alert" className="ad-form-error">
+            {error}
+          </p>
+        )}
       </form>
+      <LocationPicker
+        open={picker !== null}
+        title={
+          picker === "from"
+            ? c("Pickup location", "Lieu de départ")
+            : c("Destination", "Destination")
+        }
+        onClose={() => setPicker(null)}
+        onSelect={(value) => {
+          if (picker) change(picker, value);
+        }}
+      />
     </div>
   );
 }
