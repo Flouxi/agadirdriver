@@ -1,0 +1,28 @@
+name: Agadir Driver quality
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [codex/agadir-driver-redesign]
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Type check
+        run: pnpm exec tsc --noEmit
+      - name: Booking and tariff checks
+        run: node --test tests/booking.test.mjs
+      - name: Production build
+        run: pnpm build

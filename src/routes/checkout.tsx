@@ -1,428 +1,321 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
-import { z } from "zod";
-import {
-  Users,
-  Calendar,
-  Clock,
-  MapPin,
-  CreditCard,
-  Lock,
-  CheckCircle2,
-  ArrowLeft,
-  ShieldCheck,
-  Info,
-  Banknote,
-} from "lucide-react";
+import { createFileRoute } from "@tanstack/react-router";
+import { useState, type FormEvent } from "react";
+import { ArrowLeft, ArrowRight, Check, MessageCircle, ShieldCheck, Users } from "lucide-react";
 import Header from "../components/Header";
+import Footer from "../components/Footer";
+import BookingProgress from "../components/BookingProgress";
 import { VEHICLES } from "../data";
-
-const searchSchema = z.object({
-  from: z.string().default("Aéroport Agadir Al Massira (AGA)"),
-  to: z.string().default("Taghazout (Hôtel / Surf Camp)"),
-  date: z.string().default("2026-07-19"),
-  time: z.string().default("13:45"),
-  pax: z.coerce.number().default(2),
-  vehicleId: z.string().default("standard"),
-  price: z.coerce.number().default(0),
-});
+import { BUSINESS } from "../data/seo";
+import { bookingSearchSchema, bookingHref, validateBooking, fitsPassengers } from "../lib/booking";
+import { calculateRoutePrice } from "../lib/pricing";
+import { useCopy } from "../lib/copy";
+import { useI18n } from "../lib/i18n";
 
 export const Route = createFileRoute("/checkout")({
-  validateSearch: (s) => searchSchema.parse(s),
+  validateSearch: (search) => bookingSearchSchema.parse(search),
   head: () => ({
-    meta: [
-      { title: "Paiement — Agadir Driver" },
-      { name: "description", content: "Finalisez votre réservation en toute sécurité." },
-      { name: "robots", content: "noindex" },
-    ],
+    meta: [{ title: "Request your ride | Agadir Driver" }, { name: "robots", content: "noindex" }],
   }),
-  component: CheckoutPage,
+  component: Checkout,
 });
-
-const formatDateFr = (iso: string) => {
-  try {
-    return new Date(iso + "T00:00:00").toLocaleDateString("fr-FR", {
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    });
-  } catch {
-    return iso;
-  }
-};
-
-const genRef = () =>
-  "AGD-" +
-  Math.random().toString(36).slice(2, 6).toUpperCase() +
-  "-" +
-  Date.now().toString(36).slice(-4).toUpperCase();
-
-function CheckoutPage() {
-  const search = Route.useSearch();
-  const navigate = useNavigate();
-  const { from, to, date, time, pax, vehicleId, price } = search;
-
-  const vehicle = useMemo(
-    () => VEHICLES.find((v) => v.id === vehicleId) ?? VEHICLES[0],
-    [vehicleId],
+function Checkout() {
+  const booking = Route.useSearch();
+  const c = useCopy();
+  const { lang } = useI18n();
+  const vehicle = VEHICLES.find(
+    (v) => v.id === booking.vehicleId && fitsPassengers(v, booking.pax),
   );
-  const total = price || vehicle.basePrice;
-
-  const [form, setForm] = useState({
-    fullName: "",
-    email: "",
-    phone: "",
-    cardNumber: "",
-    expiry: "",
-    cvc: "",
-  });
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [submitting, setSubmitting] = useState(false);
-  const [confirmed, setConfirmed] = useState<null | { ref: string }>(null);
-  const [payMethod, setPayMethod] = useState<"online" | "pickup">("pickup");
-
-  const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) => {
-    let v = e.target.value;
-    if (k === "cardNumber") {
-      v = v.replace(/\D/g, "").slice(0, 16).replace(/(\d{4})(?=\d)/g, "$1 ");
-    } else if (k === "expiry") {
-      v = v.replace(/\D/g, "").slice(0, 4);
-      if (v.length >= 3) v = v.slice(0, 2) + "/" + v.slice(2);
-    } else if (k === "cvc") {
-      v = v.replace(/\D/g, "").slice(0, 4);
+  const pricing = vehicle
+    ? calculateRoutePrice({
+        from: booking.from,
+        to: booking.to,
+        vehicle,
+        bookingType: booking.type,
+        durationHours: booking.hours,
+        hasReturn: booking.hasReturn,
+      })
+    : null;
+  const invalid = validateBooking(booking);
+  const [form, setForm] = useState({ name: "", email: "", phone: "", flight: "", notes: "" });
+  const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
+  const money = pricing
+    ? new Intl.NumberFormat(lang === "FR" ? "fr-FR" : "en-GB", {
+        style: "currency",
+        currency: "EUR",
+      }).format(pricing.eur)
+    : "—";
+  const update = (key: keyof typeof form, value: string) => {
+    setForm((prev) => ({ ...prev, [key]: value }));
+    setMessage("");
+    setError("");
+  };
+  const submit = (event: FormEvent) => {
+    event.preventDefault();
+    if (!vehicle || !pricing || invalid) return;
+    if (
+      form.name.trim().length < 2 ||
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email) ||
+      form.phone.replace(/\D/g, "").length < 8
+    ) {
+      setError(
+        c(
+          "Enter your full name, a valid email and a phone number with country code.",
+          "Saisissez votre nom, un e-mail valide et un téléphone avec indicatif.",
+        ),
+      );
+      return;
     }
-    setForm((s) => ({ ...s, [k]: v }));
+    setMessage(
+      [
+        "AGADIR DRIVER — " + c("Booking request", "Demande de réservation"),
+        c("Service: ", "Service : ") +
+          (booking.type === "hourly"
+            ? booking.hours + " h"
+            : booking.hasReturn
+              ? c("Round trip", "Aller-retour")
+              : c("One-way transfer", "Transfert simple")),
+        c("From: ", "Départ : ") + booking.from,
+        ...(booking.type === "transfer" ? [c("To: ", "Arrivée : ") + booking.to] : []),
+        c("Pickup: ", "Prise en charge : ") +
+          booking.date +
+          " " +
+          booking.time +
+          " (Morocco local time)",
+        ...(booking.hasReturn
+          ? [c("Return: ", "Retour : ") + booking.returnDate + " " + booking.returnTime]
+          : []),
+        c("Passengers: ", "Passagers : ") + booking.pax,
+        c("Vehicle: ", "Véhicule : ") + vehicle.name,
+        pricing.quoteRequired
+          ? c("Please quote this route.", "Merci de chiffrer ce trajet.")
+          : c("Displayed fare: ", "Tarif affiché : ") +
+            money +
+            " — " +
+            c(
+              "please confirm final price and availability.",
+              "merci de confirmer le prix final et la disponibilité.",
+            ),
+        c("Name: ", "Nom : ") + form.name.trim(),
+        c("Email: ", "E-mail : ") + form.email.trim(),
+        c("Phone: ", "Téléphone : ") + form.phone.trim(),
+        ...(form.flight.trim() ? [c("Flight: ", "Vol : ") + form.flight.trim()] : []),
+        ...(form.notes.trim() ? [c("Notes: ", "Précisions : ") + form.notes.trim()] : []),
+      ].join("\n"),
+    );
   };
-
-  const validate = () => {
-    const e: Record<string, string> = {};
-    if (!form.fullName.trim()) e.fullName = "Nom complet requis";
-    if (!/^\S+@\S+\.\S+$/.test(form.email)) e.email = "Email invalide";
-    if (form.phone.replace(/\D/g, "").length < 8) e.phone = "Téléphone invalide";
-    if (payMethod === "online") {
-      if (form.cardNumber.replace(/\s/g, "").length < 15) e.cardNumber = "Numéro de carte invalide";
-      if (!/^\d{2}\/\d{2}$/.test(form.expiry)) e.expiry = "MM/AA";
-      if (form.cvc.length < 3) e.cvc = "CVC";
-    }
-    setErrors(e);
-    return Object.keys(e).length === 0;
-  };
-
-  const submit = async (ev: React.FormEvent) => {
-    ev.preventDefault();
-    if (!validate()) return;
-    setSubmitting(true);
-    await new Promise((r) => setTimeout(r, payMethod === "online" ? 1200 : 600));
-    setSubmitting(false);
-    setConfirmed({ ref: genRef() });
-  };
-
-  if (confirmed) {
-    return (
-      <div className="min-h-screen bg-[#f7f7f8] flex flex-col">
-        <Header />
-        <main className="flex-1">
-          <div className="max-w-2xl mx-auto px-4 py-16">
-            <div className="bg-white rounded-lg border border-gray-100 p-8 text-center">
-              <div className="w-16 h-16 rounded-full bg-[#eafaf0] mx-auto flex items-center justify-center mb-4">
-                <CheckCircle2 size={40} className="text-[#00A65A]" />
-              </div>
-              <h1 className="text-2xl font-bold text-gray-900">Réservation confirmée ✅</h1>
-              <p className="text-gray-600 mt-2">
-                Merci ! Votre réservation a bien été enregistrée.
+  return (
+    <div className="ad-site">
+      <Header />
+      <BookingProgress step={2} />
+      <main className="ad-shell ad-checkout-main">
+        <a className="ad-back" href={bookingHref("/reservation", booking)}>
+          <ArrowLeft size={15} />
+          {c("Back to your ride", "Retour à votre trajet")}
+        </a>
+        <h1>{c("A few details. Then you're ready.", "Quelques détails avant de partir.")}</h1>
+        <p>
+          {c(
+            "Send your request to our local team for confirmation.",
+            "Envoyez votre demande à notre équipe locale pour confirmation.",
+          )}
+        </p>
+        {(!vehicle || invalid) && (
+          <div role="alert" className="ad-inclusions">
+            <ShieldCheck size={24} />
+            <div>
+              <h2>
+                {c("Please check your ride details.", "Vérifiez les détails de votre trajet.")}
+              </h2>
+              <p>
+                {c(
+                  "Choose a future pickup and a vehicle that fits everyone before sending a request.",
+                  "Choisissez un départ futur et un véhicule adapté à votre groupe avant d'envoyer une demande.",
+                )}
               </p>
-                <div className="mt-4 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-gray-100 text-[12px] font-semibold text-gray-700">
-                  {payMethod === "online" ? (
-                    <><CreditCard size={13} /> Payé en ligne</>
-                  ) : (
-                    <><Banknote size={13} /> Paiement à la prise en charge</>
-                  )}
-                </div>
-              <div className="mt-6 inline-block bg-gray-50 border border-gray-100 rounded-lg px-6 py-4">
-                <div className="text-[11px] uppercase tracking-wide text-gray-500 font-semibold">
-                  Référence de réservation
-                </div>
-                <div className="text-lg font-mono font-bold text-gray-900 mt-1">
-                  {confirmed.ref}
-                </div>
-              </div>
-                <p className="text-sm text-gray-600 mt-6">
-                  Une lettre de confirmation a été envoyée à{" "}
-                  <span className="font-semibold text-gray-900">{form.email}</span>.
-                  {payMethod === "pickup" && (
-                    <> Vous réglerez <b>EUR {total.toFixed(2)}</b> directement au chauffeur (espèces ou carte).</>
-                  )}
-                </p>
-              <div className="mt-8 flex justify-center gap-3">
-                <Link
-                  to="/"
-                  className="px-5 py-2.5 rounded bg-black hover:bg-gray-900 text-white text-sm font-semibold"
-                >
-                  Retour à l'accueil
-                </Link>
-              </div>
+              <a className="ad-text-button" href={bookingHref("/reservation", booking)}>
+                {c("Edit my ride", "Modifier mon trajet")}
+                <ArrowRight size={16} />
+              </a>
             </div>
           </div>
-        </main>
-      </div>
-    );
-  }
-
-  return (
-    <div className="min-h-screen bg-[#f7f7f8] flex flex-col">
-      <Header />
-      <main className="flex-1">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <button
-            onClick={() => navigate({ to: "/reservation", search: { from, to, date, time, pax } })}
-            className="inline-flex items-center gap-1.5 text-sm text-gray-600 hover:text-gray-900 mb-4 cursor-pointer"
-          >
-            <ArrowLeft size={14} /> Retour à la réservation
-          </button>
-
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* FORM */}
-            <form onSubmit={submit} className="lg:col-span-2 space-y-4">
-              {/* Payment method selector */}
-              <section className="bg-white rounded-lg border border-gray-100 p-5">
-                <h2 className="font-semibold text-[15px] text-gray-900 mb-3">
-                  Mode de paiement
-                </h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setPayMethod("online")}
-                    className={`text-left rounded-lg border p-4 transition-colors cursor-pointer ${
-                      payMethod === "online"
-                        ? "border-gray-900 bg-gray-50 ring-1 ring-gray-900"
-                        : "border-gray-200 hover:border-gray-400"
-                    }`}
-                  >
-                    <div className="flex items-center gap-2 font-semibold text-sm text-gray-900">
-                      <CreditCard size={16} /> Payer sur le site
-                    </div>
-                    <p className="text-[12px] text-gray-600 mt-1">
-                      Paiement sécurisé par carte bancaire maintenant.
-                    </p>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setPayMethod("pickup")}
-                    className={`text-left rounded-lg border p-4 transition-colors cursor-pointer ${
-                      payMethod === "pickup"
-                        ? "border-gray-900 bg-gray-50 ring-1 ring-gray-900"
-                        : "border-gray-200 hover:border-gray-400"
-                    }`}
-                  >
-                    <div className="flex items-center gap-2 font-semibold text-sm text-gray-900">
-                      <Banknote size={16} /> Payer à la prise en charge
-                    </div>
-                    <p className="text-[12px] text-gray-600 mt-1">
-                      Réglez le chauffeur en espèces ou par carte à l'arrivée.
-                    </p>
-                  </button>
-                </div>
-              </section>
-
-              {/* Contact */}
-              <section className="bg-white rounded-lg border border-gray-100 p-5">
-                <h2 className="font-semibold text-[15px] text-gray-900 mb-4">
-                  Coordonnées du passager
-                </h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <Field
-                    label="Nom complet"
-                    value={form.fullName}
-                    onChange={set("fullName")}
-                    error={errors.fullName}
-                    placeholder="Prénom Nom"
-                    className="sm:col-span-2"
-                  />
-                  <Field
-                    label="Email"
-                    type="email"
-                    value={form.email}
-                    onChange={set("email")}
-                    error={errors.email}
-                    placeholder="email@example.com"
-                  />
-                  <Field
-                    label="Téléphone"
-                    type="tel"
-                    value={form.phone}
-                    onChange={set("phone")}
-                    error={errors.phone}
-                    placeholder="+212 6XX XX XX XX"
-                  />
-                </div>
-                <p className="text-[12px] text-gray-500 mt-3 flex items-center gap-1.5">
-                  <Info size={12} /> Votre téléphone est utilisé pour la coordination avec le chauffeur.
-                </p>
-              </section>
-
-              {/* Payment */}
-              {payMethod === "online" ? (
-              <section className="bg-white rounded-lg border border-gray-100 p-5">
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="font-semibold text-[15px] text-gray-900 flex items-center gap-2">
-                    <CreditCard size={16} /> Paiement
-                  </h2>
-                  <div className="flex items-center gap-1 text-[11px] text-gray-500">
-                    <Lock size={12} /> Paiement sécurisé
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  <Field
-                    label="Numéro de carte"
-                    value={form.cardNumber}
-                    onChange={set("cardNumber")}
-                    error={errors.cardNumber}
-                    placeholder="1234 5678 9012 3456"
-                    inputMode="numeric"
-                  />
-                  <div className="grid grid-cols-2 gap-4">
-                    <Field
-                      label="Expiration"
-                      value={form.expiry}
-                      onChange={set("expiry")}
-                      error={errors.expiry}
-                      placeholder="MM/AA"
-                      inputMode="numeric"
-                    />
-                    <Field
-                      label="CVC"
-                      value={form.cvc}
-                      onChange={set("cvc")}
-                      error={errors.cvc}
-                      placeholder="123"
-                      inputMode="numeric"
-                    />
-                  </div>
-                </div>
-
-                {/* Stripe setup notice */}
-                <div className="mt-5 bg-amber-50 border border-amber-200 rounded-md p-3 text-[12px] text-amber-900">
-                  <div className="font-semibold mb-1">⚠️ Stripe pas encore connecté</div>
-                  <p className="leading-relaxed">
-                    Ce formulaire est fonctionnel côté UI mais ne débite pas encore de vraie carte. Pour activer les paiements réels :
-                  </p>
-                  <ol className="list-decimal ml-5 mt-2 space-y-1">
-                    <li>Créez un compte sur <code className="bg-white px-1 rounded">stripe.com</code>.</li>
-                    <li>
-                      Récupérez votre <b>Publishable key</b> (<code>pk_…</code>) et votre <b>Secret key</b> (<code>sk_…</code>).
-                    </li>
-                    <li>
-                      Ajoutez <code className="bg-white px-1 rounded">VITE_STRIPE_PUBLISHABLE_KEY</code> côté client et <code className="bg-white px-1 rounded">STRIPE_SECRET_KEY</code> côté serveur (jamais dans le code frontend).
-                    </li>
-                    <li>
-                      Le débit réel doit être effectué depuis une fonction serveur (Stripe Checkout ou Payment Intents) — la clé secrète ne doit jamais être exposée au navigateur.
-                    </li>
-                  </ol>
-                </div>
-              </section>
-              ) : (
-                <section className="bg-white rounded-lg border border-gray-100 p-5">
-                  <h2 className="font-semibold text-[15px] text-gray-900 flex items-center gap-2 mb-3">
-                    <Banknote size={16} /> Paiement à la prise en charge
-                  </h2>
-                  <p className="text-[13px] text-gray-600 leading-relaxed">
-                    Aucune carte requise. Votre réservation sera confirmée immédiatement et vous réglerez le montant total de{" "}
-                    <b className="text-gray-900">EUR {total.toFixed(2)}</b> directement au chauffeur (espèces ou carte) au moment de la prise en charge.
-                  </p>
-                  <div className="mt-4 bg-[#eafaf0] border border-[#bfe8cf] rounded-md p-3 text-[12px] text-[#0a6b3a] flex items-start gap-2">
-                    <ShieldCheck size={14} className="mt-0.5 shrink-0" />
-                    <span>Annulation gratuite jusqu'à 24h avant le trajet — sans frais ni caution.</span>
-                  </div>
-                </section>
+        )}
+        <div className="ad-checkout-grid">
+          <form className="ad-details-card" onSubmit={submit}>
+            <h2>{c("Lead passenger", "Passager principal")}</h2>
+            <p>
+              {c(
+                "Use the details where we can reach you about this journey.",
+                "Indiquez les coordonnées auxquelles vous joindre pour ce trajet.",
               )}
-
-              <button
-                type="submit"
-                disabled={submitting}
-                className="w-full bg-black hover:bg-gray-900 disabled:opacity-60 text-white font-semibold py-3.5 rounded transition-colors cursor-pointer"
-              >
-                {submitting
-                  ? "Traitement…"
-                  : payMethod === "online"
-                  ? `Payer maintenant · EUR ${total.toFixed(2)}`
-                  : `Confirmer la réservation · EUR ${total.toFixed(2)}`}
-              </button>
-
-              <p className="text-[11px] text-gray-500 flex items-center justify-center gap-1.5">
-                <ShieldCheck size={12} className="text-[#00A65A]" />
-                Annulation gratuite jusqu'à 24h avant le trajet
-              </p>
-            </form>
-
-            {/* SUMMARY */}
-            <aside className="lg:col-span-1">
-              <div className="lg:sticky lg:top-24 bg-white rounded-lg border border-gray-100 p-5 space-y-4">
-                <h2 className="font-semibold text-[15px] text-gray-900">Récapitulatif</h2>
-
-                <div className="flex items-center gap-3 pb-3 border-b border-gray-100">
-                  <img
-                    src={vehicle.image}
-                    alt={vehicle.name}
-                    className="w-20 h-14 object-contain"
-                    referrerPolicy="no-referrer"
+            </p>
+            <div className="ad-form-grid">
+              {(
+                [
+                  {
+                    key: "name",
+                    label: c("Full name", "Nom complet"),
+                    type: "text",
+                    autoComplete: "name",
+                  },
+                  {
+                    key: "email",
+                    label: c("Email", "E-mail"),
+                    type: "email",
+                    autoComplete: "email",
+                  },
+                  {
+                    key: "phone",
+                    label: c("Phone with country code", "Téléphone avec indicatif"),
+                    type: "tel",
+                    autoComplete: "tel",
+                  },
+                ] as const
+              ).map((field) => (
+                <label key={field.key}>
+                  {field.label}
+                  <input
+                    type={field.type}
+                    autoComplete={field.autoComplete}
+                    required
+                    maxLength={150}
+                    value={form[field.key]}
+                    onChange={(e) => update(field.key, e.target.value)}
+                    placeholder={field.key === "phone" ? "+212 …" : undefined}
                   />
-                  <div className="min-w-0">
-                    <div className="font-semibold text-sm text-gray-900 truncate">{vehicle.name}</div>
-                    <div className="text-[11px] text-gray-500 truncate">{vehicle.carModels}</div>
-                  </div>
-                </div>
-
-                <div className="space-y-3 text-[13px]">
-                  <Row icon={<MapPin size={14} />} label="Départ" value={from} />
-                  <Row icon={<MapPin size={14} className="text-[#f0a500]" />} label="Arrivée" value={to} />
-                  <Row icon={<Calendar size={14} />} label="Date" value={formatDateFr(date)} />
-                  <Row icon={<Clock size={14} />} label="Heure" value={time} />
-                  <Row icon={<Users size={14} />} label="Passagers" value={String(pax)} />
-                </div>
-
-                <div className="pt-3 border-t border-gray-100 flex items-center justify-between">
-                  <span className="text-sm text-gray-700">Total</span>
-                  <span className="text-lg font-bold text-gray-900">EUR {total.toFixed(2)}</span>
-                </div>
-                <p className="text-[11px] text-gray-500">TVA, taxes et péages inclus.</p>
+                </label>
+              ))}
+              <label>
+                {c("Flight number (for airport pickups)", "Numéro de vol (départs aéroport)")}
+                <input
+                  maxLength={30}
+                  value={form.flight}
+                  onChange={(e) => update("flight", e.target.value)}
+                  placeholder="FR 1234"
+                />
+              </label>
+              <label className="ad-form-span">
+                {c(
+                  "Luggage, child seats, exact address or other requests",
+                  "Bagages, sièges enfants, adresse exacte ou autres demandes",
+                )}
+                <textarea
+                  maxLength={1000}
+                  rows={4}
+                  value={form.notes}
+                  onChange={(e) => update("notes", e.target.value)}
+                />
+              </label>
+            </div>
+            <div className="ad-inclusions">
+              <ShieldCheck size={21} />
+              <p>
+                {c(
+                  "No payment is taken here. We will confirm your final fare, availability and payment arrangements directly. Your request becomes a booking only after our confirmation.",
+                  "Aucun paiement n'est prélevé ici. Nous confirmons directement le tarif final, la disponibilité et les modalités de paiement. Votre demande devient une réservation après notre confirmation.",
+                )}
+              </p>
+            </div>
+            {error && (
+              <p role="alert" className="ad-form-error">
+                {error}
+              </p>
+            )}
+            {!message ? (
+              <button className="ad-primary ad-full" disabled={!vehicle || !!invalid} type="submit">
+                {c("Review my request", "Vérifier ma demande")}
+                <ArrowRight size={18} />
+              </button>
+            ) : (
+              <div className="ad-request-review" role="status">
+                <h3>
+                  <Check size={18} />
+                  {c("Your request is ready to send.", "Votre demande est prête à être envoyée.")}
+                </h3>
+                <pre>{message}</pre>
+                <a
+                  className="ad-primary ad-full"
+                  href={BUSINESS.whatsapp + "?text=" + encodeURIComponent(message)}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  <MessageCircle size={18} />
+                  {c("Send request on WhatsApp", "Envoyer sur WhatsApp")}
+                </a>
+                <p>
+                  {c(
+                    "WhatsApp opens with your message. Press Send there to reach our team. This page does not save a booking or send an email.",
+                    "WhatsApp s'ouvre avec votre message. Appuyez sur Envoyer pour joindre notre équipe. Cette page n'enregistre pas de réservation et n'envoie pas d'e-mail.",
+                  )}
+                </p>
               </div>
-            </aside>
-          </div>
+            )}
+            <p className="ad-fine-print">
+              {c(
+                "Your contact and journey details are included in the message you choose to send to Agadir Driver on WhatsApp. Please do not include payment card details.",
+                "Vos coordonnées et les détails du trajet sont inclus dans le message que vous choisissez d'envoyer à Agadir Driver sur WhatsApp. N'incluez pas de données de carte bancaire.",
+              )}
+            </p>
+          </form>
+          <aside>
+            <div className="ad-summary-card">
+              <h2>{c("Your journey", "Votre trajet")}</h2>
+              <div className="ad-summary-route">
+                <div>
+                  <small>{c("Pickup", "Départ")}</small>
+                  <strong>{booking.from || "—"}</strong>
+                </div>
+                <div>
+                  <small>
+                    {booking.type === "hourly" ? c("Duration", "Durée") : c("Drop-off", "Arrivée")}
+                  </small>
+                  <strong>
+                    {booking.type === "hourly" ? booking.hours + " h" : booking.to || "—"}
+                  </strong>
+                </div>
+              </div>
+              <p className="ad-summary-date">
+                {booking.date} · {booking.time}
+              </p>
+              {booking.hasReturn && (
+                <p className="ad-summary-return">
+                  {c("Return", "Retour")} · {booking.returnDate} · {booking.returnTime}
+                </p>
+              )}
+              <p className="ad-summary-estimate">
+                <Users size={15} />
+                {booking.pax} {c("passengers", "passagers")}
+              </p>
+              {vehicle && (
+                <div className="ad-selected-summary">
+                  <img src={vehicle.image} alt="" />
+                  <span>
+                    <small>{c("Vehicle", "Véhicule")}</small>
+                    <strong>{vehicle.name}</strong>
+                  </span>
+                </div>
+              )}
+              <div className="ad-summary-total">
+                <span>{c("Displayed total", "Total affiché")}</span>
+                <strong>{pricing?.quoteRequired ? c("On quotation", "Sur devis") : money}</strong>
+              </div>
+              <p className="ad-fine-print">
+                {c(
+                  "Price for the vehicle, subject to confirmation. Return included when selected.",
+                  "Prix par véhicule, à confirmer. Retour inclus si sélectionné.",
+                )}
+              </p>
+              <a className="ad-summary-help" href={"mailto:support@agadirdriver.com"}>
+                {c(
+                  "Prefer email? Contact our team.",
+                  "Vous préférez l'e-mail ? Contactez notre équipe.",
+                )}
+              </a>
+            </div>
+          </aside>
         </div>
       </main>
-    </div>
-  );
-}
-
-function Field({
-  label,
-  error,
-  className = "",
-  ...rest
-}: React.InputHTMLAttributes<HTMLInputElement> & { label: string; error?: string; className?: string }) {
-  return (
-    <label className={`block ${className}`}>
-      <span className="block text-[12px] font-semibold text-gray-700 mb-1">{label}</span>
-      <input
-        {...rest}
-        className={`w-full px-3 py-2.5 text-sm rounded border ${
-          error ? "border-red-400" : "border-gray-200"
-        } focus:outline-none focus:border-gray-900 bg-white`}
-      />
-      {error && <span className="block text-[11px] text-red-500 mt-1">{error}</span>}
-    </label>
-  );
-}
-
-function Row({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
-  return (
-    <div className="flex items-start gap-2">
-      <span className="text-gray-400 mt-0.5">{icon}</span>
-      <div className="flex-1 min-w-0">
-        <div className="text-[11px] text-gray-500 uppercase tracking-wide">{label}</div>
-        <div className="text-gray-900 truncate">{value}</div>
-      </div>
+      <Footer />
     </div>
   );
 }
