@@ -3,7 +3,7 @@ on:
   pull_request:
     branches: [main]
   push:
-    branches: [codex/agadir-driver-redesign]
+    branches: [main, codex/agadir-driver-redesign]
 permissions:
   contents: read
 jobs:
@@ -24,3 +24,5 @@ jobs:
         run: node --test tests/booking.test.mjs
       - name: Production build
         run: pnpm build
+      - name: Render production pages
+        run: node tests/production-smoke.mjs
