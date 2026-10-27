@@ -18,6 +18,7 @@ import { VEHICLES, DESTINATIONS, REVIEWS } from "../data";
 import { AIRPORTS, CITIES } from "../data/locations";
 import { BUSINESS } from "../data/seo";
 import { useCopy } from "../lib/copy";
+import { useVehicleText } from "../lib/vehicle-copy";
 import { type BookingSearch } from "../lib/booking";
 import {
   HOMEPAGE_HERO_IMAGE_URL,
@@ -50,6 +51,7 @@ export const Route = createFileRoute("/")({
 });
 function Home() {
   const c = useCopy();
+  const vehicleText = useVehicleText();
   const [mode, setMode] = useState<"transfer" | "hourly">("transfer");
   useEffect(() => {
     if (new URLSearchParams(window.location.search).get("service") === "hourly") setMode("hourly");
@@ -253,9 +255,9 @@ function Home() {
                 key={vehicle.id}
                 onClick={() => prefill({ vehicleId: vehicle.id })}
               >
-                <img src={vehicle.image} alt={vehicle.name} loading="lazy" />
-                <h3>{vehicle.name}</h3>
-                <p>{vehicle.carModels}</p>
+                <img src={vehicle.image} alt={vehicleText(vehicle.name)} loading="lazy" />
+                <h3>{vehicleText(vehicle.name)}</h3>
+                <p>{vehicleText(vehicle.carModels)}</p>
                 <div>
                   <span>
                     <Users size={15} />

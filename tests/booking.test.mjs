@@ -110,3 +110,13 @@ test("unknown custom addresses require a quotation instead of a fabricated local
 test("Morocco calendar date is used at UTC midnight boundaries", () => {
   assert.equal(localDate(new Date("2024-07-01T23:30:00Z")), "2024-07-02");
 });
+
+const { findLocationByLabel } = await import(
+  pathToFileURL(join(cache, "src/data/locations.mjs")).href
+);
+test("airport pickup coordinates stay at Al Massira rather than the city", () => {
+  const airport = findLocationByLabel("Aéroport Agadir Al Massira (AGA)");
+  assert.ok(airport);
+  assert.ok(airport.lat > 30.31 && airport.lat < 30.34);
+  assert.ok(airport.lng > -9.44 && airport.lng < -9.4);
+});

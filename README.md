@@ -42,3 +42,5 @@ Keep vehicle availability, passenger/luggage limits and tariff data up to date. 
 ## Deployment
 
 The TanStack Start application uses the existing Vercel/Nitro configuration. Review the branch preview and quality checks before merging into the production branch.
+
+The route map uses standard OpenStreetMap tiles by default. For a configured map service, set VITE_MAP_TILE_URL and VITE_MAP_TILE_ATTRIBUTION together. Keep attribution visible and preserve browser caching and referrer behavior.

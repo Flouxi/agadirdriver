@@ -9,6 +9,7 @@ import { BUSINESS } from "../data/seo";
 import { bookingSearchSchema, bookingHref, validateBooking, fitsPassengers } from "../lib/booking";
 import { calculateRoutePrice } from "../lib/pricing";
 import { useCopy } from "../lib/copy";
+import { useVehicleText } from "../lib/vehicle-copy";
 import { useI18n } from "../lib/i18n";
 
 export const Route = createFileRoute("/checkout")({
@@ -21,6 +22,7 @@ export const Route = createFileRoute("/checkout")({
 function Checkout() {
   const booking = Route.useSearch();
   const c = useCopy();
+  const vehicleText = useVehicleText();
   const { lang } = useI18n();
   const vehicle = VEHICLES.find(
     (v) => v.id === booking.vehicleId && fitsPassengers(v, booking.pax),
@@ -107,7 +109,7 @@ function Checkout() {
   return (
     <div className="ad-site">
       <Header />
-      <BookingProgress step={2} />
+      <BookingProgress step={message ? 3 : 2} />
       <main className="ad-shell ad-checkout-main">
         <a className="ad-back" href={bookingHref("/reservation", booking)}>
           <ArrowLeft size={15} />
@@ -291,7 +293,7 @@ function Checkout() {
                   <img src={vehicle.image} alt="" />
                   <span>
                     <small>{c("Vehicle", "Véhicule")}</small>
-                    <strong>{vehicle.name}</strong>
+                    <strong>{vehicleText(vehicle.name)}</strong>
                   </span>
                 </div>
               )}

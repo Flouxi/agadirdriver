@@ -7,7 +7,7 @@ export default function BookingProgress({ step = 1 }: { step?: number }) {
       {[
         c("Your ride", "Votre trajet"),
         c("Your details", "Vos coordonnées"),
-        c("Confirmation", "Confirmation"),
+        c("Send request", "Envoyer la demande"),
       ].map((label, i) => (
         <span
           key={label}

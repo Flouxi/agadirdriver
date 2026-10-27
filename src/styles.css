@@ -343,7 +343,7 @@ body {
   color: var(--ad-muted);
 }
 .ad-shell {
-  width: min(100% - 96px, 1200px);
+  width: min(100% - 128px, 1200px);
   margin-inline: auto;
 }
 .ad-section {
@@ -574,12 +574,12 @@ body {
   z-index: 2;
 }
 .ad-hero {
-  padding-top: 62px;
+  padding-top: 72px;
   padding-bottom: 28px;
 }
 .ad-hero-copy {
   max-width: 760px;
-  margin-bottom: 52px;
+  margin-bottom: 46px;
 }
 .ad-hero-copy h1 {
   font-size: clamp(38px, 4vw, 54px);
@@ -601,6 +601,7 @@ body {
   color: #ffffffc7;
   font-size: 11px;
   padding-top: 26px;
+  padding-right: 64px;
 }
 .ad-hero-proof a {
   display: flex;
@@ -686,7 +687,7 @@ body {
 .ad-place-field strong {
   display: block;
   font-weight: 500;
-  font-size: 12px;
+  font-size: 13px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -765,7 +766,7 @@ body {
   border-radius: 11px;
   white-space: nowrap;
   padding: 15px 22px;
-  font-size: 12px !important;
+  font-size: 14px !important;
   min-width: 145px;
 }
 .ad-return-fields {
@@ -2073,7 +2074,7 @@ body {
     grid-row: 1;
   }
   .ad-checkout-grid > aside .ad-summary-route {
-    display: none;
+    display: block;
   }
   .ad-checkout-grid > aside .ad-summary-card {
     padding: 20px;
@@ -2636,4 +2637,10 @@ body {
 .ad-map-placeholder p {
   font-size: 11px;
   max-width: 360px;
+}
+
+@media (max-width: 899px) {
+  .ad-footer .ad-floating-help {
+    display: none;
+  }
 }

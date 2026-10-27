@@ -22,10 +22,12 @@ import {
   bookingSearchSchema,
   validateBooking,
   fitsPassengers,
+  nextDate,
   type BookingSearch,
 } from "../lib/booking";
 import { calculateRoutePrice } from "../lib/pricing";
 import { useCopy } from "../lib/copy";
+import { useVehicleText } from "../lib/vehicle-copy";
 import { useI18n } from "../lib/i18n";
 import { BUSINESS } from "../data/seo";
 
@@ -40,14 +42,16 @@ function Reservation() {
   const booking = Route.useSearch();
   const navigate = useNavigate();
   const c = useCopy();
+  const vehicleText = useVehicleText();
   const { lang } = useI18n();
   const [editing, setEditing] = useState(false);
+  const [editingReturn, setEditingReturn] = useState(false);
   useEffect(() => {
     if (editing)
       document
         .getElementById("booking-interface")
         ?.scrollIntoView({ behavior: "smooth", block: "center" });
-  }, [editing]);
+  }, [editing, editingReturn]);
   const [selectedId, setSelectedId] = useState(booking.vehicleId);
   const [filter, setFilter] = useState("all");
   const eligible = VEHICLES.filter((v) => fitsPassengers(v, booking.pax));
@@ -135,7 +139,10 @@ function Reservation() {
           </div>
           <button
             className="ad-text-button"
-            onClick={() => setEditing(!editing)}
+            onClick={() => {
+              setEditingReturn(false);
+              setEditing(!editing);
+            }}
             aria-expanded={editing}
           >
             <Pencil size={14} />
@@ -152,7 +159,20 @@ function Reservation() {
                 )}
               </p>
             )}
-            <BookingBar key={JSON.stringify(booking)} initial={booking} onSearch={update} light />
+            <BookingBar
+              key={JSON.stringify(booking) + String(editingReturn)}
+              initial={
+                editingReturn
+                  ? {
+                      ...booking,
+                      hasReturn: true,
+                      returnDate: booking.returnDate || nextDate(booking.date),
+                    }
+                  : booking
+              }
+              onSearch={update}
+              light
+            />
           </div>
         )}
         <div className="ad-reservation-grid">
@@ -220,11 +240,11 @@ function Reservation() {
                   onClick={() => setSelectedId(vehicle.id)}
                 >
                   <div className="ad-vehicle-image">
-                    <img src={vehicle.image} alt={vehicle.name} />
+                    <img src={vehicle.image} alt={vehicleText(vehicle.name)} />
                   </div>
                   <div className="ad-vehicle-description">
                     <div className="ad-vehicle-title">
-                      <h3>{vehicle.name}</h3>
+                      <h3>{vehicleText(vehicle.name)}</h3>
                       {vehicle.id === "comfort-sedan" && (
                         <span className="ad-recommended">{c("Recommended", "Recommandé")}</span>
                       )}
@@ -232,7 +252,7 @@ function Reservation() {
                         <span className="ad-request-badge">{c("On request", "Sur demande")}</span>
                       )}
                     </div>
-                    <p>{vehicle.carModels}</p>
+                    <p>{vehicleText(vehicle.carModels)}</p>
                     <div className="ad-capacity">
                       <span>
                         <Users size={15} />
@@ -243,7 +263,7 @@ function Reservation() {
                         {vehicle.luggage} {c("bags", "bagages")}
                       </span>
                     </div>
-                    <small>{vehicle.luggageNote}</small>
+                    <small>{vehicleText(vehicle.luggageNote)}</small>
                   </div>
                   <div className="ad-vehicle-price">
                     {pricing.quoteRequired ? (
@@ -306,6 +326,7 @@ function Reservation() {
                 <button
                   className="ad-secondary"
                   onClick={() => {
+                    setEditingReturn(true);
                     setEditing(true);
                     document
                       .getElementById("booking-interface")
@@ -380,7 +401,7 @@ function Reservation() {
                   <img src={selected.vehicle.image} alt="" />
                   <span>
                     <small>{c("Selected vehicle", "Véhicule sélectionné")}</small>
-                    <strong>{selected.vehicle.name}</strong>
+                    <strong>{vehicleText(selected.vehicle.name)}</strong>
                   </span>
                 </div>
               )}
@@ -437,7 +458,7 @@ function Reservation() {
       </main>
       <div className="ad-mobile-booking-bar">
         <div>
-          <small>{selected?.vehicle.name}</small>
+          <small>{selected ? vehicleText(selected.vehicle.name) : ""}</small>
           <strong>
             {invalid
               ? "—"
