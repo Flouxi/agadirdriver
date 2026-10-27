@@ -108,5 +108,5 @@ test("unknown custom addresses require a quotation instead of a fabricated local
   assert.equal(result.source, "quote");
 });
 test("Morocco calendar date is used at UTC midnight boundaries", () => {
-  assert.equal(localDate(new Date("2030-07-01T23:30:00Z")), "2030-07-02");
+  assert.equal(localDate(new Date("2024-07-01T23:30:00Z")), "2024-07-02");
 });
