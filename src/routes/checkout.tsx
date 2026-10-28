@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { ArrowLeft, ArrowRight, Check, MessageCircle, ShieldCheck, Users } from "lucide-react";
 import BookingHeader from "../components/BookingHeader";
 import Footer from "../components/Footer";
@@ -11,6 +11,8 @@ import { calculateRoutePrice } from "../lib/pricing";
 import { useCopy } from "../lib/copy";
 import { useVehicleText } from "../lib/vehicle-copy";
 import { useI18n } from "../lib/i18n";
+import { validateEnquiryContact, enquiryEmailHref } from "../lib/enquiry";
+import { trackBookingEvent } from "../lib/conversion";
 
 export const Route = createFileRoute("/checkout")({
   validateSearch: (search) => bookingSearchSchema.parse(search),
@@ -41,6 +43,14 @@ function Checkout() {
   const [form, setForm] = useState({ name: "", email: "", phone: "", flight: "", notes: "" });
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
+  const reviewHeading = useRef<HTMLHeadingElement>(null);
+  const optionalDetails = useRef<HTMLDetailsElement>(null);
+  useEffect(() => {
+    if (message) {
+      reviewHeading.current?.focus({ preventScroll: true });
+      reviewHeading.current?.scrollIntoView({ block: "center", behavior: "instant" });
+    }
+  }, [message]);
   const money = pricing
     ? new Intl.NumberFormat(lang === "FR" ? "fr-FR" : "en-GB", {
         style: "currency",
@@ -55,19 +65,29 @@ function Checkout() {
   const submit = (event: FormEvent) => {
     event.preventDefault();
     if (!vehicle || !pricing || invalid) return;
-    if (
-      form.name.trim().length < 2 ||
-      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email) ||
-      form.phone.replace(/\D/g, "").length < 8
-    ) {
+    const contactError = validateEnquiryContact(form);
+    if (contactError) {
+      if (contactError !== "name" && optionalDetails.current) {
+        optionalDetails.current.open = true;
+        optionalDetails.current
+          .querySelector<HTMLInputElement>(
+            `input[type="${contactError === "email" ? "email" : "tel"}"]`,
+          )
+          ?.focus();
+      }
       setError(
         c(
-          "Enter your full name, a valid email and a phone number with country code.",
-          "Saisissez votre nom, un e-mail valide et un téléphone avec indicatif.",
+          contactError === "name"
+            ? "Enter your name to prepare your request."
+            : "Check the optional email or phone number, or leave it blank.",
+          contactError === "name"
+            ? "Indiquez votre nom pour préparer votre demande."
+            : "Vérifiez l'e-mail ou le téléphone facultatif, ou laissez le champ vide.",
         ),
       );
       return;
     }
+    trackBookingEvent("request_prepared", booking.type);
     setMessage(
       [
         "AGADIR DRIVER — " + c("Booking request", "Demande de réservation"),
@@ -99,8 +119,8 @@ function Checkout() {
               "merci de confirmer le prix final et la disponibilité.",
             ),
         c("Name: ", "Nom : ") + form.name.trim(),
-        c("Email: ", "E-mail : ") + form.email.trim(),
-        c("Phone: ", "Téléphone : ") + form.phone.trim(),
+        ...(form.email.trim() ? [c("Email: ", "E-mail : ") + form.email.trim()] : []),
+        ...(form.phone.trim() ? [c("Phone: ", "Téléphone : ") + form.phone.trim()] : []),
         ...(form.flight.trim() ? [c("Flight: ", "Vol : ") + form.flight.trim()] : []),
         ...(form.notes.trim() ? [c("Notes: ", "Précisions : ") + form.notes.trim()] : []),
       ].join("\n"),
@@ -114,11 +134,13 @@ function Checkout() {
           <ArrowLeft size={15} />
           {c("Back to your ride", "Retour à votre trajet")}
         </a>
-        <h1>{c("A few details. Then you're ready.", "Quelques détails avant de partir.")}</h1>
+        <h1>
+          {c("Request your ride. No payment now.", "Demandez votre trajet. Aucun paiement ici.")}
+        </h1>
         <p>
           {c(
-            "Send your request to our local team for confirmation.",
-            "Envoyez votre demande à notre équipe locale pour confirmation.",
+            "Add your name, review your journey, then send it on WhatsApp or by email. Our team confirms your fare and availability.",
+            "Indiquez votre nom, vérifiez votre trajet, puis envoyez-le par WhatsApp ou e-mail. Notre équipe confirme le tarif et la disponibilité.",
           )}
         </p>
         {(!vehicle || invalid) && (
@@ -142,12 +164,12 @@ function Checkout() {
           </div>
         )}
         <div className="ad-checkout-grid">
-          <form className="ad-details-card" onSubmit={submit}>
+          <form className="ad-details-card" onSubmit={submit} noValidate>
             <h2>{c("Lead passenger", "Passager principal")}</h2>
             <p>
               {c(
-                "Use the details where we can reach you about this journey.",
-                "Indiquez les coordonnées auxquelles vous joindre pour ce trajet.",
+                "We can reply in the WhatsApp conversation you start. Additional contact details are optional.",
+                "Nous pouvons vous répondre dans la conversation WhatsApp que vous ouvrez. Les autres coordonnées sont facultatives.",
               )}
             </p>
             <div className="ad-form-grid">
@@ -159,18 +181,6 @@ function Checkout() {
                     type: "text",
                     autoComplete: "name",
                   },
-                  {
-                    key: "email",
-                    label: c("Email", "E-mail"),
-                    type: "email",
-                    autoComplete: "email",
-                  },
-                  {
-                    key: "phone",
-                    label: c("Phone with country code", "Téléphone avec indicatif"),
-                    type: "tel",
-                    autoComplete: "tel",
-                  },
                 ] as const
               ).map((field) => (
                 <label key={field.key}>
@@ -178,16 +188,15 @@ function Checkout() {
                   <input
                     type={field.type}
                     autoComplete={field.autoComplete}
-                    required
+                    required={field.key === "name"}
                     maxLength={150}
                     value={form[field.key]}
                     onChange={(e) => update(field.key, e.target.value)}
-                    placeholder={field.key === "phone" ? "+212 …" : undefined}
                   />
                 </label>
               ))}
               <label>
-                {c("Flight number (for airport pickups)", "Numéro de vol (départs aéroport)")}
+                {c("Flight number (optional)", "Numéro de vol (facultatif)")}
                 <input
                   maxLength={30}
                   value={form.flight}
@@ -195,19 +204,50 @@ function Checkout() {
                   placeholder="FR 1234"
                 />
               </label>
-              <label className="ad-form-span">
-                {c(
-                  "Luggage, child seats, exact address or other requests",
-                  "Bagages, sièges enfants, adresse exacte ou autres demandes",
-                )}
-                <textarea
-                  maxLength={1000}
-                  rows={4}
-                  value={form.notes}
-                  onChange={(e) => update("notes", e.target.value)}
-                />
-              </label>
             </div>
+            <details className="ad-contact-options" ref={optionalDetails}>
+              <summary>
+                {c(
+                  "Add contact details or special requests (optional)",
+                  "Ajouter des coordonnées ou demandes particulières (facultatif)",
+                )}
+              </summary>
+              <div className="ad-form-grid">
+                <label>
+                  {c("Email (optional)", "E-mail (facultatif)")}
+                  <input
+                    type="email"
+                    autoComplete="email"
+                    maxLength={150}
+                    value={form.email}
+                    onChange={(e) => update("email", e.target.value)}
+                  />
+                </label>
+                <label>
+                  {c("Phone for pickup (optional)", "Téléphone pour le trajet (facultatif)")}
+                  <input
+                    type="tel"
+                    autoComplete="tel"
+                    placeholder="+212 …"
+                    maxLength={40}
+                    value={form.phone}
+                    onChange={(e) => update("phone", e.target.value)}
+                  />
+                </label>
+                <label className="ad-form-span">
+                  {c(
+                    "Luggage, child seats, exact address or other requests",
+                    "Bagages, sièges enfants, adresse exacte ou autres demandes",
+                  )}
+                  <textarea
+                    maxLength={1000}
+                    rows={4}
+                    value={form.notes}
+                    onChange={(e) => update("notes", e.target.value)}
+                  />
+                </label>
+              </div>
+            </details>
             <div className="ad-inclusions">
               <ShieldCheck size={21} />
               <p>
@@ -229,7 +269,7 @@ function Checkout() {
               </button>
             ) : (
               <div className="ad-request-review" role="status">
-                <h3>
+                <h3 ref={reviewHeading} tabIndex={-1}>
                   <Check size={18} />
                   {c("Your request is ready to send.", "Votre demande est prête à être envoyée.")}
                 </h3>
@@ -239,22 +279,31 @@ function Checkout() {
                   href={BUSINESS.whatsapp + "?text=" + encodeURIComponent(message)}
                   target="_blank"
                   rel="noreferrer"
+                  onClick={() => trackBookingEvent("whatsapp_outbound_click", booking.type)}
                 >
                   <MessageCircle size={18} />
                   {c("Send request on WhatsApp", "Envoyer sur WhatsApp")}
                 </a>
+                <a
+                  className="ad-secondary ad-full ad-email-alternative"
+                  href={enquiryEmailHref(message)}
+                  onClick={() => trackBookingEvent("email_outbound_click", booking.type)}
+                >
+                  {c("Send the same request by email", "Envoyer la même demande par e-mail")}
+                  <ArrowRight size={16} />
+                </a>
                 <p>
                   {c(
-                    "WhatsApp opens with your message. Press Send there to reach our team. This page does not save a booking or send an email.",
-                    "WhatsApp s'ouvre avec votre message. Appuyez sur Envoyer pour joindre notre équipe. Cette page n'enregistre pas de réservation et n'envoie pas d'e-mail.",
+                    "Your chosen app opens with your request. Press Send there to reach our team. Preparing this message does not confirm a booking.",
+                    "L'application choisie s'ouvre avec votre demande. Appuyez sur Envoyer pour joindre notre équipe. Préparer ce message ne confirme pas une réservation.",
                   )}
                 </p>
               </div>
             )}
             <p className="ad-fine-print">
               {c(
-                "Your contact and journey details are included in the message you choose to send to Agadir Driver on WhatsApp. Please do not include payment card details.",
-                "Vos coordonnées et les détails du trajet sont inclus dans le message que vous choisissez d'envoyer à Agadir Driver sur WhatsApp. N'incluez pas de données de carte bancaire.",
+                "Your journey and any contact details you add are included in the request you choose to send to Agadir Driver. Please do not include payment card details.",
+                "Votre trajet et les coordonnées ajoutées sont inclus dans la demande que vous choisissez d'envoyer à Agadir Driver. N'incluez pas de données de carte bancaire.",
               )}
             </p>
           </form>

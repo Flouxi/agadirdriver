@@ -1,43 +1,175 @@
 import { Link } from "@tanstack/react-router";
-import { ArrowRight, Check, MessageCircle } from "lucide-react";
+import { ArrowRight, MessageCircle } from "lucide-react";
 import { BUSINESS, SERVICE_PAGES, type ServicePage } from "../data/seo";
+import { AIRPORTS } from "../data/locations";
+import { useCopy } from "../lib/copy";
+import Header from "./Header";
+import Footer from "./Footer";
+import BookingBar from "./BookingBar";
+import BookingFaqs from "./BookingFaqs";
 
-export default function SeoLandingPage({ page, path }: { page: ServicePage; path: keyof typeof SERVICE_PAGES }) {
+export default function SeoLandingPage({
+  page,
+  path,
+}: {
+  page: ServicePage;
+  path: keyof typeof SERVICE_PAGES;
+}) {
+  const c = useCopy();
+  const hourly = path === "/private-driver-agadir";
+  const city = path === "/agadir-taxi";
+  const destination = path.includes("taghazout")
+    ? "Taghazout"
+    : path.includes("tamraght")
+      ? "Tamraght"
+      : "";
+  const initial = { from: city || hourly ? "Agadir Centre-Ville" : AIRPORTS[0].label };
+  const heading = c(
+    page.h1,
+    hourly
+      ? "Chauffeur privé à Agadir"
+      : city
+        ? "Taxi à Agadir"
+        : destination
+          ? `Transfert aéroport vers ${destination}`
+          : "Transfert aéroport d'Agadir",
+  );
+  const intro = hourly
+    ? c(
+        "Your schedule, your stops. Choose your pickup, hours and vehicle, then confirm your itinerary with our local team.",
+        "Vos horaires, vos arrêts. Choisissez votre départ, la durée et le véhicule, puis confirmez votre itinéraire avec notre équipe.",
+      )
+    : city
+      ? c(
+          "A private ride from your hotel to your next stop. Enter your route to compare vehicles and request your journey.",
+          "Un trajet privé de votre hôtel à votre prochaine étape. Indiquez votre itinéraire pour comparer les véhicules et demander votre trajet.",
+        )
+      : destination
+        ? c(
+            `From Agadir Al Massira Airport to your accommodation in ${destination}. Choose your hotel or enter its address to see your vehicle options.`,
+            `De l'aéroport Agadir Al Massira à votre hébergement à ${destination}. Choisissez votre hôtel ou indiquez son adresse pour comparer les véhicules.`,
+          )
+        : c(
+            page.intro,
+            "Organisez votre transfert privé depuis l'aéroport Agadir Al Massira vers votre hôtel, appartement ou surf camp.",
+          );
+  const whatsapp =
+    BUSINESS.whatsapp +
+    "?text=" +
+    encodeURIComponent(
+      c(
+        `Hello, I would like help arranging ${page.service}.`,
+        `Bonjour, je souhaite organiser un trajet : ${heading}.`,
+      ),
+    );
   return (
-    <main className="min-h-screen bg-surface text-ink">
-      <section className="bg-ink px-5 py-20 text-white sm:px-8 lg:py-28">
-        <div className="mx-auto max-w-5xl">
-          <Link to="/" className="text-sm text-white/60 transition hover:text-white">← Back to AgadirDriver.com</Link>
-          <p className="mt-12 text-xs font-semibold uppercase tracking-[0.22em] text-accent">AgadirDriver.com · {page.service}</p>
-          <h1 className="mt-4 max-w-3xl text-4xl font-extrabold tracking-tight sm:text-6xl">{page.h1}</h1>
-          <p className="mt-6 max-w-2xl text-lg leading-relaxed text-white/70">{page.intro}</p>
-          <a href={`${BUSINESS.whatsapp}?text=${encodeURIComponent(`Hi AgadirDriver.com, I would like to book ${page.service}.`)}`} className="mt-8 inline-flex items-center gap-2 rounded-full bg-accent px-6 py-3 font-semibold text-ink transition hover:brightness-110"><MessageCircle size={18} /> Book via WhatsApp</a>
-        </div>
-      </section>
-
-      <section className="mx-auto grid max-w-5xl gap-8 px-5 py-16 sm:px-8 lg:grid-cols-[1.4fr_0.8fr] lg:py-24">
-        <div>
-          <h2 className="text-2xl font-bold sm:text-3xl">What this service includes</h2>
-          <p className="mt-4 leading-8 text-ink/70">Your driver collects the journey details, confirms the route and pickup information, and helps you plan a straightforward ride between Agadir, the airport, and nearby destinations.</p>
-          <h2 className="mt-12 text-2xl font-bold sm:text-3xl">Booking process</h2>
-          <ol className="mt-5 space-y-4 text-ink/75">
-            {['Send your pickup and destination details on WhatsApp.', 'Include your date, time, passengers, luggage, and flight number when relevant.', 'Receive the current route information and confirm the booking directly.'].map((step, index) => <li key={step} className="flex gap-4"><span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-accent text-sm font-bold text-ink">{index + 1}</span><span>{step}</span></li>)}
-          </ol>
-          <h2 className="mt-12 text-2xl font-bold sm:text-3xl">Vehicles and capacity</h2>
-          <p className="mt-4 leading-8 text-ink/70">Tell us how many people are travelling and how much luggage you have so the appropriate vehicle can be arranged for your journey.</p>
-          <h2 className="mt-12 text-2xl font-bold sm:text-3xl">What to mention when booking</h2>
-          <ul className="mt-5 grid gap-3 sm:grid-cols-2">{['Passenger count', 'Luggage and surfboards', 'Flight number and arrival time', 'Hotel or accommodation address'].map((item) => <li key={item} className="flex items-center gap-2 text-ink/75"><Check size={17} className="text-accent" />{item}</li>)}</ul>
-        </div>
-        <aside className="h-fit rounded-3xl bg-ink p-7 text-white shadow-xl lg:sticky lg:top-8">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-accent">Need a ride?</p>
-          <h2 className="mt-3 text-2xl font-bold">Ask for your route</h2>
-          <p className="mt-3 text-sm leading-7 text-white/65">Send your travel details and receive booking guidance for {page.service.toLowerCase()}.</p>
-          <a href={`${BUSINESS.whatsapp}?text=${encodeURIComponent(`Hi AgadirDriver.com, I would like to book ${page.service}.`)}`} className="mt-6 flex items-center justify-center gap-2 rounded-full bg-accent px-5 py-3 text-center font-semibold text-ink"><MessageCircle size={17} /> WhatsApp {BUSINESS.phone}</a>
-          <div className="mt-7 border-t border-white/10 pt-6"><p className="text-xs uppercase tracking-wider text-white/45">Also available</p><div className="mt-3 space-y-2">{Object.entries(SERVICE_PAGES).filter(([url]) => url !== path).slice(0, 4).map(([url, related]) => <Link key={url} to={url as any} className="flex items-center justify-between text-sm text-white/75 hover:text-accent"><span>{related.service}</span><ArrowRight size={15} /></Link>)}</div></div>
-        </aside>
-      </section>
-
-      <section className="bg-white px-5 py-16 sm:px-8 lg:py-20"><div className="mx-auto max-w-5xl"><h2 className="text-2xl font-bold sm:text-3xl">Frequently asked questions</h2><div className="mt-8 grid gap-4 sm:grid-cols-2">{[['How do I book?', 'Send your route, date, time, passenger count, and accommodation details on WhatsApp.'], ['Can I request an airport pickup?', 'Yes. Include your flight number and arrival time so the pickup can be planned around your journey.'], ['Can I travel to Taghazout or Tamraght?', 'Yes. These are common routes from Agadir and Agadir Al Massira Airport.'], ['What if I have surfboards or extra luggage?', 'Mention all luggage and equipment when you request the booking so the suitable vehicle can be considered.']].map(([question, answer]) => <div key={question} className="rounded-2xl border border-ink/10 p-5"><h3 className="font-semibold">{question}</h3><p className="mt-2 text-sm leading-6 text-ink/65">{answer}</p></div>)}</div></div></section>
-    </main>
+    <div className="ad-site ad-service-landing">
+      <a className="ad-skip" href="#main-content">
+        {c("Skip to content", "Aller au contenu")}
+      </a>
+      <Header />
+      <main id="main-content">
+        <section className="ad-service-hero">
+          <div className="ad-shell">
+            <Link to="/" className="ad-back">
+              ← {c("All Agadir Driver services", "Tous les services Agadir Driver")}
+            </Link>
+            <p className="ad-eyebrow">
+              Agadir Driver ·{" "}
+              {c("Private vehicles. Local team.", "Véhicules privés. Équipe locale.")}
+            </p>
+            <h1>{heading}</h1>
+            <p className="ad-service-intro">{intro}</p>
+            <BookingBar initial={initial} mode={hourly ? "hourly" : "transfer"} />
+            <p className="ad-service-reassurance">
+              {c(
+                "Price per vehicle · No payment online · Final fare and availability confirmed by our team",
+                "Prix par véhicule · Aucun paiement en ligne · Tarif final et disponibilité confirmés par notre équipe",
+              )}
+            </p>
+            <a className="ad-service-chat" href={whatsapp} target="_blank" rel="noreferrer">
+              <MessageCircle size={17} />
+              {c(
+                "Need help with your route? Ask on WhatsApp",
+                "Besoin d'aide pour votre trajet ? Contactez-nous sur WhatsApp",
+              )}
+            </a>
+          </div>
+        </section>
+        <section className="ad-section">
+          <div className="ad-shell">
+            <div className="ad-section-heading">
+              <h2>
+                {hourly
+                  ? c("A driver around your plans", "Un chauffeur selon vos projets")
+                  : destination
+                    ? c(`Your arrival in ${destination}`, `Votre arrivée à ${destination}`)
+                    : c(
+                        "From your request to your destination",
+                        "De votre demande à votre destination",
+                      )}
+              </h2>
+            </div>
+            <div className="ad-conversion-steps">
+              {[
+                [
+                  c("1. Choose your journey", "1. Choisissez votre trajet"),
+                  hourly
+                    ? c(
+                        "Select your pickup and hire duration. Add your intended stops in the request notes so our team can confirm the itinerary.",
+                        "Choisissez le départ et la durée. Ajoutez les arrêts prévus dans les remarques pour que notre équipe confirme l'itinéraire.",
+                      )
+                    : c(
+                        "Enter your pickup, accommodation, date and group size. Choose a vehicle with room for everyone and their luggage.",
+                        "Indiquez le départ, l'hébergement, la date et la taille du groupe. Choisissez un véhicule adapté aux passagers et aux bagages.",
+                      ),
+                ],
+                [
+                  c("2. Confirm the details", "2. Confirmez les détails"),
+                  c(
+                    "Send your request on WhatsApp or by email. Our team confirms the final fare, availability, pickup and payment arrangements.",
+                    "Envoyez votre demande par WhatsApp ou e-mail. Notre équipe confirme le tarif final, la disponibilité, le départ et les modalités de paiement.",
+                  ),
+                ],
+                [
+                  c("3. Meet your driver", "3. Retrouvez votre chauffeur"),
+                  city || hourly
+                    ? c(
+                        "Meet at the agreed pickup point. Share your exact address and any luggage requirements before the journey.",
+                        "Retrouvez votre chauffeur au point convenu. Communiquez l'adresse exacte et vos besoins de bagages avant le trajet.",
+                      )
+                    : c(
+                        "Share your flight number and meet at the agreed airport pickup point. Tell us about surfboards or child-seat requirements before booking.",
+                        "Indiquez votre numéro de vol et retrouvez votre chauffeur au point de rendez-vous convenu. Précisez vos besoins de planches ou sièges enfants avant réservation.",
+                      ),
+                ],
+              ].map(([title, text]) => (
+                <article key={title}>
+                  <h3>{title}</h3>
+                  <p>{text}</p>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+        <BookingFaqs />
+        <section className="ad-section ad-related-services">
+          <div className="ad-shell">
+            <h2>{c("Planning another journey?", "Un autre trajet à organiser ?")}</h2>
+            <div>
+              {Object.entries(SERVICE_PAGES)
+                .filter(([url]) => url !== path)
+                .map(([url, related]) => (
+                  <Link key={url} to={url}>
+                    <span>{related.service}</span>
+                    <ArrowRight size={16} />
+                  </Link>
+                ))}
+            </div>
+          </div>
+        </section>
+      </main>
+      <Footer />
+    </div>
   );
 }

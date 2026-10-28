@@ -24,6 +24,7 @@ import {
   type BookingSearch,
 } from "../lib/booking";
 import { useCopy } from "../lib/copy";
+import { trackBookingEvent } from "../lib/conversion";
 
 interface Props {
   initial?: Partial<BookingSearch>;
@@ -79,6 +80,7 @@ export default function BookingBar({ initial, mode, onSearch, light = false }: P
       return;
     }
     const next = { ...booking, hasReturn: booking.type === "transfer" && booking.hasReturn };
+    trackBookingEvent("booking_search", booking.type);
     if (onSearch) onSearch(next);
     else void navigate({ to: "/reservation", search: next });
   };
