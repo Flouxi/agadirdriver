@@ -542,6 +542,9 @@ body {
 .ad-localized-guide .ad-shell {
   max-width: 850px;
 }
+.ad-localized-guide .ad-breadcrumbs {
+  color: var(--ad-muted);
+}
 .ad-localized-guide h1 {
   font-size: clamp(2rem, 4vw, 3.5rem);
   line-height: 1.15;
