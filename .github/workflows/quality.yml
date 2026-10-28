@@ -26,3 +26,5 @@ jobs:
         run: pnpm build
       - name: Render production pages
         run: node tests/production-smoke.mjs
+      - name: Check search metadata and canonical routes
+        run: node tests/seo.test.mjs
