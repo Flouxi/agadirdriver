@@ -12,6 +12,7 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { LanguageProvider } from "../lib/i18n";
+import { PassengerDraftProvider } from "../lib/passenger-draft";
 import { reportError } from "../lib/error-reporting";
 
 function NotFoundComponent() {
@@ -186,7 +187,9 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <LanguageProvider>
         {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-        <Outlet />
+        <PassengerDraftProvider>
+          <Outlet />
+        </PassengerDraftProvider>
       </LanguageProvider>
     </QueryClientProvider>
   );

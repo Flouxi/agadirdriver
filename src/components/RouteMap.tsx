@@ -15,11 +15,10 @@ interface Props {
   onExpand?: () => void;
 }
 function mapPadding(canvas: HTMLDivElement | null) {
-  const card = canvas?.parentElement?.querySelector<HTMLElement>(".ad-map-journey-card");
   const heading = canvas?.parentElement?.querySelector<HTMLElement>(".ad-map-heading");
   return {
     paddingTopLeft: [40, (heading?.offsetHeight ?? 55) + 38] as [number, number],
-    paddingBottomRight: [60, (card?.offsetHeight ?? 140) + 64] as [number, number],
+    paddingBottomRight: [60, 38] as [number, number],
   };
 }
 const routes = new Map<string, { route: RoadRoute; expires: number }>();
@@ -126,8 +125,6 @@ export default function RouteMap({
           if (!interacted.current) fit();
         });
         resize.observe(host.current);
-        const card = host.current.parentElement?.querySelector(".ad-map-journey-card");
-        if (card) resize.observe(card);
         const load = async () => {
           request?.abort();
           request = new AbortController();
@@ -216,90 +213,96 @@ export default function RouteMap({
   const duration = road ? routeDuration(road.durationSeconds) : null;
   return (
     <div className={"ad-map ad-clean-map " + (expanded ? "ad-map-expanded" : "")}>
-      {known ? (
-        <div
-          ref={host}
-          className="ad-map-canvas"
-          onPointerDown={() => {
-            interacted.current = true;
-          }}
-          onKeyDown={() => {
-            interacted.current = true;
-          }}
-          role="region"
-          aria-label={c(
-            "Route map. A is pickup, B is destination.",
-            "Carte du trajet. A : départ, B : destination.",
-          )}
-        />
-      ) : (
-        <div className="ad-clean-map-empty">
-          <MapPin size={28} />
-          <strong>{c("A journey made for you", "Un trajet sur mesure")}</strong>
-          <p>
-            {c(
-              "Our team will confirm the exact route and meeting point.",
-              "Notre équipe confirmera le trajet exact et le rendez-vous.",
+      <div className="ad-map-stage">
+        {known ? (
+          <div
+            ref={host}
+            className="ad-map-canvas"
+            onPointerDown={() => {
+              interacted.current = true;
+            }}
+            onKeyDown={() => {
+              interacted.current = true;
+            }}
+            role="region"
+            aria-label={c(
+              "Route map. A is pickup, B is destination.",
+              "Carte du trajet. A : départ, B : destination.",
             )}
-          </p>
-        </div>
-      )}
-      {known && (
-        <>
-          <div className="ad-map-heading">
-            <span>{c("Your route", "Votre itinéraire")}</span>
-            <strong aria-live="polite">
-              {status === "loading"
-                ? c("Finding your road route…", "Recherche de votre itinéraire…")
-                : duration
-                  ? (duration.hours ? duration.hours + " h " : "") +
-                    (duration.minutes ? duration.minutes + " min" : "") +
-                    " · " +
-                    Math.round(road!.distanceMeters / 1000) +
-                    " km"
-                  : c("Route preview", "Aperçu du trajet")}
-            </strong>
+          />
+        ) : (
+          <div className="ad-clean-map-empty">
+            <MapPin size={28} />
+            <strong>{c("A journey made for you", "Un trajet sur mesure")}</strong>
+            <p>
+              {c(
+                "Our team will confirm the exact route and meeting point.",
+                "Notre équipe confirmera le trajet exact et le rendez-vous.",
+              )}
+            </p>
           </div>
-          <div className="ad-clean-map-controls">
-            <button
-              type="button"
-              aria-label={c("Zoom in", "Zoom avant")}
-              onClick={() => {
-                interacted.current = true;
-                mapRef.current?.zoomIn();
-              }}
-            >
-              <Plus size={18} />
-            </button>
-            <button
-              type="button"
-              aria-label={c("Zoom out", "Zoom arrière")}
-              onClick={() => {
-                interacted.current = true;
-                mapRef.current?.zoomOut();
-              }}
-            >
-              <Minus size={18} />
-            </button>
-            <button
-              type="button"
-              aria-label={c("Fit entire route", "Voir tout le trajet")}
-              onClick={fit}
-            >
-              <LocateFixed size={17} />
-            </button>
-            {onExpand && (
+        )}
+        {known && (
+          <>
+            <div className="ad-map-heading">
+              <span>{c("Your route", "Votre itinéraire")}</span>
+              <strong aria-live="polite">
+                {status === "loading"
+                  ? c("Finding your road route…", "Recherche de votre itinéraire…")
+                  : duration
+                    ? (duration.hours ? duration.hours + " h " : "") +
+                      (duration.minutes ? duration.minutes + " min" : "") +
+                      " · " +
+                      Math.round(road!.distanceMeters / 1000) +
+                      " km"
+                    : c("Route preview", "Aperçu du trajet")}
+              </strong>
+            </div>
+            <div className="ad-clean-map-controls">
               <button
                 type="button"
-                aria-label={c("Expand map", "Agrandir la carte")}
-                onClick={onExpand}
+                aria-label={c("Zoom in", "Zoom avant")}
+                title={c("Zoom in", "Zoom avant")}
+                onClick={() => {
+                  interacted.current = true;
+                  mapRef.current?.zoomIn();
+                }}
               >
-                <Maximize2 size={16} />
+                <Plus size={18} />
               </button>
-            )}
-          </div>
-        </>
-      )}
+              <button
+                type="button"
+                aria-label={c("Zoom out", "Zoom arrière")}
+                title={c("Zoom out", "Zoom arrière")}
+                onClick={() => {
+                  interacted.current = true;
+                  mapRef.current?.zoomOut();
+                }}
+              >
+                <Minus size={18} />
+              </button>
+              <button
+                type="button"
+                aria-label={c("Fit entire route", "Voir tout le trajet")}
+                title={c("Fit entire route", "Voir tout le trajet")}
+                onClick={fit}
+              >
+                <LocateFixed size={17} />
+              </button>
+              {onExpand && (
+                <button
+                  type="button"
+                  aria-label={c("Expand map", "Agrandir la carte")}
+                  title={c("Expand map", "Agrandir la carte")}
+                  onClick={onExpand}
+                >
+                  <Maximize2 size={16} />
+                </button>
+              )}
+            </div>
+          </>
+        )}
+      </div>
       <div className="ad-map-journey-card">
         <div>
           <b>A</b>

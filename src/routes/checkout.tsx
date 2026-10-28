@@ -1,12 +1,13 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useState, type FormEvent } from "react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useRef, useState, type FormEvent } from "react";
 import { ArrowLeft, ArrowRight, Check, MessageCircle, ShieldCheck, Users } from "lucide-react";
 import BookingHeader from "../components/BookingHeader";
 import Footer from "../components/Footer";
 
 import { VEHICLES } from "../data";
+import { usePassengerDraft } from "../lib/passenger-draft";
 import { BUSINESS } from "../data/seo";
-import { bookingSearchSchema, bookingHref, validateBooking, fitsPassengers } from "../lib/booking";
+import { bookingSearchSchema, validateBooking, fitsPassengers } from "../lib/booking";
 import { calculateRoutePrice } from "../lib/pricing";
 import { useCopy } from "../lib/copy";
 import { useVehicleText } from "../lib/vehicle-copy";
@@ -37,9 +38,16 @@ function Checkout() {
         hasReturn: booking.hasReturn,
       })
     : null;
+  const formatDate = (value: string) =>
+    new Date(value + "T12:00:00").toLocaleDateString(lang === "FR" ? "fr-FR" : "en-GB", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
   const invalid = validateBooking(booking);
-  const [form, setForm] = useState({ name: "", email: "", phone: "", flight: "", notes: "" });
-  const [error, setError] = useState("");
+  const [form, setForm] = usePassengerDraft();
+  const [errors, setErrors] = useState<Partial<Record<"name" | "email" | "phone", string>>>({});
+  const pageHeading = useRef<HTMLHeadingElement>(null);
   const [message, setMessage] = useState("");
   const money = pricing
     ? new Intl.NumberFormat(lang === "FR" ? "fr-FR" : "en-GB", {
@@ -50,22 +58,34 @@ function Checkout() {
   const update = (key: keyof typeof form, value: string) => {
     setForm((prev) => ({ ...prev, [key]: value }));
     setMessage("");
-    setError("");
+    if (key === "name" || key === "email" || key === "phone")
+      setErrors((previous) => ({ ...previous, [key]: undefined }));
   };
-  const submit = (event: FormEvent) => {
+  const submit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!vehicle || !pricing || invalid) return;
-    if (
-      form.name.trim().length < 2 ||
-      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email) ||
-      form.phone.replace(/\D/g, "").length < 8
-    ) {
-      setError(
-        c(
-          "Enter your full name, a valid email and a phone number with country code.",
-          "Saisissez votre nom, un e-mail valide et un téléphone avec indicatif.",
-        ),
+    const nextErrors: Partial<Record<"name" | "email" | "phone", string>> = {};
+    if (form.name.trim().length < 2)
+      nextErrors.name = c(
+        "Enter the passenger's full name.",
+        "Indiquez le nom complet du passager.",
       );
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim()))
+      nextErrors.email = c(
+        "Enter a valid email, for example name@example.com.",
+        "Indiquez un e-mail valide, par exemple nom@exemple.com.",
+      );
+    if (form.phone.replace(/\D/g, "").length < 8)
+      nextErrors.phone = c(
+        "Add your phone number with its country code, for example +212.",
+        "Indiquez votre téléphone avec l'indicatif, par exemple +212.",
+      );
+    setErrors(nextErrors);
+    const firstError = (Object.keys(nextErrors) as ("name" | "email" | "phone")[])[0];
+    if (firstError) {
+      (
+        event.currentTarget.elements.namedItem("passenger-" + firstError) as HTMLInputElement | null
+      )?.focus();
       return;
     }
     setMessage(
@@ -105,16 +125,24 @@ function Checkout() {
         ...(form.notes.trim() ? [c("Notes: ", "Précisions : ") + form.notes.trim()] : []),
       ].join("\n"),
     );
+    requestAnimationFrame(() => {
+      pageHeading.current?.focus({ preventScroll: true });
+      pageHeading.current?.scrollIntoView({ block: "start" });
+    });
   };
   return (
     <div className="ad-site">
       <BookingHeader step={message ? 3 : 2} />
       <main className="ad-shell ad-checkout-main">
-        <a className="ad-back" href={bookingHref("/reservation", booking)}>
+        <Link className="ad-back" to="/reservation" search={booking}>
           <ArrowLeft size={15} />
           {c("Back to your ride", "Retour à votre trajet")}
-        </a>
-        <h1>{c("A few details. Then you're ready.", "Quelques détails avant de partir.")}</h1>
+        </Link>
+        <h1 ref={pageHeading} tabIndex={-1}>
+          {message
+            ? c("Review your request", "Vérifiez votre demande")
+            : c("A few details. Then you're ready.", "Quelques détails avant de partir.")}
+        </h1>
         <p>
           {c(
             "Send your request to our local team for confirmation.",
@@ -134,92 +162,105 @@ function Checkout() {
                   "Choisissez un départ futur et un véhicule adapté à votre groupe avant d'envoyer une demande.",
                 )}
               </p>
-              <a className="ad-text-button" href={bookingHref("/reservation", booking)}>
+              <Link className="ad-text-button" to="/reservation" search={booking}>
                 {c("Edit my ride", "Modifier mon trajet")}
                 <ArrowRight size={16} />
-              </a>
+              </Link>
             </div>
           </div>
         )}
         <div className="ad-checkout-grid">
-          <form className="ad-details-card" onSubmit={submit}>
-            <h2>{c("Lead passenger", "Passager principal")}</h2>
-            <p>
-              {c(
-                "Use the details where we can reach you about this journey.",
-                "Indiquez les coordonnées auxquelles vous joindre pour ce trajet.",
-              )}
-            </p>
-            <div className="ad-form-grid">
-              {(
-                [
-                  {
-                    key: "name",
-                    label: c("Full name", "Nom complet"),
-                    type: "text",
-                    autoComplete: "name",
-                  },
-                  {
-                    key: "email",
-                    label: c("Email", "E-mail"),
-                    type: "email",
-                    autoComplete: "email",
-                  },
-                  {
-                    key: "phone",
-                    label: c("Phone with country code", "Téléphone avec indicatif"),
-                    type: "tel",
-                    autoComplete: "tel",
-                  },
-                ] as const
-              ).map((field) => (
-                <label key={field.key}>
-                  {field.label}
-                  <input
-                    type={field.type}
-                    autoComplete={field.autoComplete}
-                    required
-                    maxLength={150}
-                    value={form[field.key]}
-                    onChange={(e) => update(field.key, e.target.value)}
-                    placeholder={field.key === "phone" ? "+212 …" : undefined}
-                  />
-                </label>
-              ))}
-              <label>
-                {c("Flight number (for airport pickups)", "Numéro de vol (départs aéroport)")}
-                <input
-                  maxLength={30}
-                  value={form.flight}
-                  onChange={(e) => update("flight", e.target.value)}
-                  placeholder="FR 1234"
-                />
-              </label>
-              <label className="ad-form-span">
-                {c(
-                  "Luggage, child seats, exact address or other requests",
-                  "Bagages, sièges enfants, adresse exacte ou autres demandes",
-                )}
-                <textarea
-                  maxLength={1000}
-                  rows={4}
-                  value={form.notes}
-                  onChange={(e) => update("notes", e.target.value)}
-                />
-              </label>
-            </div>
-            <div className="ad-inclusions">
-              <ShieldCheck size={21} />
+          <form className="ad-details-card" onSubmit={submit} noValidate>
+            <div hidden={!!message}>
+              <h2>{c("Lead passenger", "Passager principal")}</h2>
               <p>
                 {c(
-                  "No payment is taken here. We will confirm your final fare, availability and payment arrangements directly. Your request becomes a booking only after our confirmation.",
-                  "Aucun paiement n'est prélevé ici. Nous confirmons directement le tarif final, la disponibilité et les modalités de paiement. Votre demande devient une réservation après notre confirmation.",
+                  "Use the details where we can reach you about this journey.",
+                  "Indiquez les coordonnées auxquelles vous joindre pour ce trajet.",
                 )}
               </p>
+              <div className="ad-form-grid">
+                {(
+                  [
+                    {
+                      key: "name",
+                      label: c("Full name", "Nom complet"),
+                      type: "text",
+                      autoComplete: "name",
+                    },
+                    {
+                      key: "email",
+                      label: c("Email", "E-mail"),
+                      type: "email",
+                      autoComplete: "email",
+                    },
+                    {
+                      key: "phone",
+                      label: c("Phone with country code", "Téléphone avec indicatif"),
+                      type: "tel",
+                      autoComplete: "tel",
+                    },
+                  ] as const
+                ).map((field) => (
+                  <label key={field.key}>
+                    {field.label}
+                    <input
+                      id={"passenger-" + field.key}
+                      name={"passenger-" + field.key}
+                      aria-invalid={!!errors[field.key]}
+                      aria-describedby={
+                        errors[field.key] ? "passenger-error-" + field.key : undefined
+                      }
+                      type={field.type}
+                      autoComplete={field.autoComplete}
+                      required
+                      maxLength={150}
+                      value={form[field.key]}
+                      onChange={(e) => update(field.key, e.target.value)}
+                      placeholder={field.key === "phone" ? "+212 …" : undefined}
+                    />
+                    {errors[field.key] && (
+                      <span className="ad-field-error" id={"passenger-error-" + field.key}>
+                        {errors[field.key]}
+                      </span>
+                    )}
+                  </label>
+                ))}
+                <label>
+                  {c("Flight number (for airport pickups)", "Numéro de vol (départs aéroport)")}
+                  <input
+                    maxLength={30}
+                    value={form.flight}
+                    onChange={(e) => update("flight", e.target.value)}
+                    placeholder="FR 1234"
+                  />
+                </label>
+                <label className="ad-form-span">
+                  {c(
+                    "Luggage, child seats, exact address or other requests",
+                    "Bagages, sièges enfants, adresse exacte ou autres demandes",
+                  )}
+                  <textarea
+                    maxLength={1000}
+                    rows={4}
+                    value={form.notes}
+                    onChange={(e) => update("notes", e.target.value)}
+                  />
+                </label>
+              </div>
+              <div className="ad-inclusions">
+                <ShieldCheck size={21} />
+                <p>
+                  {c(
+                    "No payment is taken here. We will confirm your final fare, availability and payment arrangements directly. Your request becomes a booking only after our confirmation.",
+                    "Aucun paiement n'est prélevé ici. Nous confirmons directement le tarif final, la disponibilité et les modalités de paiement. Votre demande devient une réservation après notre confirmation.",
+                  )}
+                </p>
+              </div>
             </div>
-            {error && (
+            {Object.values(errors).some(Boolean) && (
               <p role="alert" className="ad-form-error">
-                {error}
+                {c("Please check the highlighted details.", "Vérifiez les champs signalés.")}
               </p>
             )}
             {!message ? (
@@ -233,7 +274,42 @@ function Checkout() {
                   <Check size={18} />
                   {c("Your request is ready to send.", "Votre demande est prête à être envoyée.")}
                 </h3>
-                <pre>{message}</pre>
+                <dl className="ad-passenger-review">
+                  <div>
+                    <dt>{c("Lead passenger", "Passager principal")}</dt>
+                    <dd>{form.name.trim()}</dd>
+                  </div>
+                  <div>
+                    <dt>{c("Email", "E-mail")}</dt>
+                    <dd>{form.email.trim()}</dd>
+                  </div>
+                  <div>
+                    <dt>{c("Phone", "Téléphone")}</dt>
+                    <dd>{form.phone.trim()}</dd>
+                  </div>
+                  {form.flight.trim() && (
+                    <div>
+                      <dt>{c("Flight", "Vol")}</dt>
+                      <dd>{form.flight.trim()}</dd>
+                    </div>
+                  )}
+                  {form.notes.trim() && (
+                    <div>
+                      <dt>{c("Your requests", "Vos demandes")}</dt>
+                      <dd>{form.notes.trim()}</dd>
+                    </div>
+                  )}
+                </dl>
+                <button
+                  type="button"
+                  className="ad-edit-passenger"
+                  onClick={() => {
+                    setMessage("");
+                    requestAnimationFrame(() => document.getElementById("passenger-name")?.focus());
+                  }}
+                >
+                  {c("Edit passenger details", "Modifier les coordonnées")}
+                </button>
                 <a
                   className="ad-primary ad-full"
                   href={BUSINESS.whatsapp + "?text=" + encodeURIComponent(message)}
@@ -241,12 +317,12 @@ function Checkout() {
                   rel="noreferrer"
                 >
                   <MessageCircle size={18} />
-                  {c("Send request on WhatsApp", "Envoyer sur WhatsApp")}
+                  {c("Continue to WhatsApp", "Continuer sur WhatsApp")}
                 </a>
                 <p>
                   {c(
-                    "WhatsApp opens with your message. Press Send there to reach our team. This page does not save a booking or send an email.",
-                    "WhatsApp s'ouvre avec votre message. Appuyez sur Envoyer pour joindre notre équipe. Cette page n'enregistre pas de réservation et n'envoie pas d'e-mail.",
+                    "WhatsApp opens with your request. Tap Send there; our team will confirm availability and the final fare.",
+                    "WhatsApp s'ouvre avec votre demande. Appuyez sur Envoyer ; notre équipe confirmera la disponibilité et le tarif final.",
                   )}
                 </p>
               </div>
@@ -276,11 +352,14 @@ function Checkout() {
                 </div>
               </div>
               <p className="ad-summary-date">
-                {booking.date} · {booking.time}
+                {formatDate(booking.date)} · {booking.time}
+                <small className="ad-morocco-time">
+                  {c("Morocco local time", "Heure locale du Maroc")}
+                </small>
               </p>
               {booking.hasReturn && (
                 <p className="ad-summary-return">
-                  {c("Return", "Retour")} · {booking.returnDate} · {booking.returnTime}
+                  {c("Return", "Retour")} · {formatDate(booking.returnDate)} · {booking.returnTime}
                 </p>
               )}
               <p className="ad-summary-estimate">
