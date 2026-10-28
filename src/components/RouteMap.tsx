@@ -1,215 +1,344 @@
 import { useEffect, useRef, useState } from "react";
-import { LATLNG_POSITIONS } from "../data/mapPositions";
+import { LocateFixed, Maximize2, Minus, Plus, MapPin, RotateCw } from "lucide-react";
 import { findLocationByLabel } from "../data/locations";
+import { routeDuration, type RoadRoute } from "../lib/road-route";
 import { useCopy } from "../lib/copy";
-import { MapPin } from "lucide-react";
 import "leaflet/dist/leaflet.css";
+
 interface Props {
   from: string;
   to: string;
   pickupTime: string;
-  dropoffTime: string;
+  dropoffTime?: string;
   expanded?: boolean;
+  onRoute?: (route: RoadRoute | null) => void;
+  onExpand?: () => void;
 }
-export default function RouteMap({ from, to, pickupTime, expanded = false }: Props) {
-  const host = useRef<HTMLDivElement>(null);
-  const mapRef = useRef<import("leaflet").Map | null>(null);
-  const [status, setStatus] = useState<"loading" | "road" | "estimate" | "unavailable">("loading");
+function mapPadding(canvas: HTMLDivElement | null) {
+  const card = canvas?.parentElement?.querySelector<HTMLElement>(".ad-map-journey-card");
+  const heading = canvas?.parentElement?.querySelector<HTMLElement>(".ad-map-heading");
+  return {
+    paddingTopLeft: [40, (heading?.offsetHeight ?? 55) + 38] as [number, number],
+    paddingBottomRight: [60, (card?.offsetHeight ?? 140) + 64] as [number, number],
+  };
+}
+const routes = new Map<string, { route: RoadRoute; expires: number }>();
+export default function RouteMap({
+  from,
+  to,
+  pickupTime,
+  expanded = false,
+  onRoute,
+  onExpand,
+}: Props) {
   const c = useCopy();
-  const coordinate = (label: string) =>
-    findLocationByLabel(label) ??
-    Object.entries(LATLNG_POSITIONS).find(
-      ([name]) => name.toLowerCase() === label.trim().toLowerCase(),
-    )?.[1];
-  const known = !!coordinate(from) && !!coordinate(to);
+  const start = findLocationByLabel(from),
+    end = findLocationByLabel(to);
+  const host = useRef<HTMLDivElement>(null),
+    mapRef = useRef<import("leaflet").Map | null>(null),
+    bounds = useRef<import("leaflet").LatLngBounds | null>(null);
+  const interacted = useRef(false),
+    retry = useRef<(() => void) | null>(null),
+    callback = useRef(onRoute);
+  callback.current = onRoute;
+  const [status, setStatus] = useState<"loading" | "road" | "estimate" | "unavailable">("loading");
+  const [road, setRoad] = useState<RoadRoute | null>(null);
+  const known = !!start && !!end && !(start.lat === end.lat && start.lng === end.lng);
+
   useEffect(() => {
-    if (!known || !host.current) return;
-    const controller = new AbortController();
-    let disposed = false;
-    let map: import("leaflet").Map | undefined;
-    const timer = window.setTimeout(() => controller.abort(), 6000);
+    if (!known || !host.current || !start || !end) {
+      callback.current?.(null);
+      return;
+    }
+    let disposed = false,
+      map: import("leaflet").Map | undefined,
+      resize: ResizeObserver | undefined,
+      request: AbortController | undefined;
+    const key = start.id + ":" + end.id;
     setStatus("loading");
+    setRoad(null);
+    callback.current?.(null);
+    interacted.current = false;
     void (async () => {
       try {
         const L = (await import("leaflet")).default;
         if (disposed || !host.current) return;
-        const start = coordinate(from)!;
-        const end = coordinate(to)!;
-        map = L.map(host.current, { scrollWheelZoom: false, zoomControl: true });
+        map = L.map(host.current, {
+          scrollWheelZoom: false,
+          zoomControl: false,
+          doubleClickZoom: false,
+          zoomSnap: 0.25,
+          zoomAnimation: false,
+          fadeAnimation: false,
+          markerZoomAnimation: false,
+          inertia: false,
+        });
         mapRef.current = map;
-        if (expanded) map.zoomControl.setPosition("topright");
+        map.attributionControl.setPrefix(false);
         L.tileLayer(
           import.meta.env.VITE_MAP_TILE_URL || "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
           {
             maxZoom: 19,
+            updateWhenIdle: true,
             attribution:
               import.meta.env.VITE_MAP_TILE_ATTRIBUTION ||
               '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
           },
         ).addTo(map);
-        const startPoint: [number, number] = [start.lat, start.lng],
-          endPoint: [number, number] = [end.lat, end.lng];
-        const pickupMarker = L.circleMarker(startPoint, {
-          radius: 6,
-          color: "#fff",
-          weight: 3,
-          fillColor: "#181c16",
-          fillOpacity: 1,
-        }).addTo(map);
-        const dropoffMarker = L.circleMarker(endPoint, {
-          radius: 6,
-          color: "#fff",
-          weight: 3,
-          fillColor: "#e8ac2a",
-          fillOpacity: 1,
-        }).addTo(map);
-        if (expanded) {
-          const label = (title: string, place: string, time: string, gold: boolean) => {
-            const element = document.createElement("div");
-            element.className = "ad-map-station " + (gold ? "ad-map-station-gold" : "");
-            const text = document.createElement("span");
-            const small = document.createElement("small");
-            small.textContent = title;
-            const strong = document.createElement("strong");
-            strong.textContent = place;
-            text.append(small, strong);
-            element.append(text);
-            if (time) {
-              const badge = document.createElement("b");
-              badge.textContent = time;
-              element.append(badge);
-            }
-            return element;
-          };
-          pickupMarker
-            .bindTooltip(label(c("Pick up", "Départ"), from, pickupTime, false), {
-              permanent: true,
-              direction: "bottom",
-              offset: [0, 10],
-              className: "ad-map-station-tooltip",
-            })
-            .openTooltip();
-          dropoffMarker
-            .bindTooltip(label(c("Drop-off", "Arrivée"), to, "", true), {
-              permanent: true,
-              direction: "top",
-              offset: [0, -10],
-              className: "ad-map-station-tooltip",
-            })
-            .openTooltip();
-        }
-        const fallback = L.polyline([startPoint, endPoint], {
-          color: "#727c66",
-          weight: 3,
-          dashArray: "6 8",
-        }).addTo(map);
-        map.fitBounds(L.latLngBounds([startPoint, endPoint]), {
-          padding: expanded ? [80, 105] : [35, 40],
-          maxZoom: 13,
+        const a: [number, number] = [start.lat, start.lng],
+          b: [number, number] = [end.lat, end.lng];
+        const marker = (point: [number, number], name: string, gold = false) =>
+          L.marker(point, {
+            keyboard: true,
+            title: name,
+            icon: L.divIcon({
+              className: "ad-route-pin " + (gold ? "ad-route-pin-gold" : ""),
+              html: "<span>" + name + "</span>",
+              iconSize: [30, 30],
+              iconAnchor: [15, 15],
+            }),
+          }).addTo(map!);
+        marker(a, "A");
+        marker(b, "B", true);
+        const routeLayer = L.layerGroup().addTo(map);
+        L.polyline([a, b], {
+          color: "#687668",
+          weight: 2,
+          dashArray: "5 7",
+          interactive: false,
+        }).addTo(routeLayer);
+        bounds.current = L.latLngBounds([a, b]);
+        const fit = () => {
+          if (map && bounds.current)
+            map.fitBounds(bounds.current, {
+              ...mapPadding(host.current),
+              maxZoom: 14,
+              animate: false,
+            });
+        };
+        fit();
+        map.on("dragstart", () => {
+          interacted.current = true;
         });
-        setStatus("estimate");
-        try {
-          const response = await fetch(
-            "https://router.project-osrm.org/route/v1/driving/" +
-              start.lng +
-              "," +
-              start.lat +
-              ";" +
-              end.lng +
-              "," +
-              end.lat +
-              "?overview=full&geometries=geojson",
-            { signal: controller.signal },
-          );
-          if (!response.ok) return;
-          const json = await response.json();
-          const coordinates = json.routes?.[0]?.geometry?.coordinates as number[][] | undefined;
-          if (disposed || !map || !coordinates?.length) return;
-          const route: [number, number][] = coordinates
-            .filter((p) => p.length >= 2 && Number.isFinite(p[0]) && Number.isFinite(p[1]))
-            .map((p) => [p[1], p[0]]);
-          if (route.length < 2) return;
-          fallback.remove();
-          L.polyline(route, { color: "#fff", weight: 7 }).addTo(map);
-          L.polyline(route, { color: "#283421", weight: 4 }).addTo(map);
-          map.fitBounds(L.latLngBounds(route), {
-            padding: expanded ? [80, 105] : [30, 35],
-            maxZoom: 13,
-          });
-          setStatus("road");
-        } catch {
-          /* The visible dashed estimate remains usable when routing is offline. */
-        }
+        resize = new ResizeObserver(() => {
+          if (!map || disposed) return;
+          map.invalidateSize({ animate: false, pan: false });
+          if (!interacted.current) fit();
+        });
+        resize.observe(host.current);
+        const card = host.current.parentElement?.querySelector(".ad-map-journey-card");
+        if (card) resize.observe(card);
+        const load = async () => {
+          request?.abort();
+          request = new AbortController();
+          const active = request;
+          setStatus("loading");
+          const timeout = window.setTimeout(() => active.abort(), 12500);
+          try {
+            const cached = routes.get(key);
+            let result: RoadRoute;
+            if (cached && cached.expires > Date.now()) result = cached.route;
+            else {
+              const response = await fetch(
+                "/api/route?" + new URLSearchParams({ from: start.id, to: end.id }),
+                { signal: active.signal },
+              );
+              if (!response.ok) throw new Error("Route unavailable");
+              result = (await response.json()) as RoadRoute;
+              if (
+                result.fromId !== start.id ||
+                result.toId !== end.id ||
+                !Array.isArray(result.coordinates) ||
+                result.coordinates.length < 2 ||
+                !Number.isFinite(result.distanceMeters) ||
+                !Number.isFinite(result.durationSeconds)
+              )
+                throw new Error("Invalid route");
+              if (routes.size >= 40) routes.delete(routes.keys().next().value!);
+              routes.set(key, { route: result, expires: Date.now() + 1800000 });
+            }
+            if (disposed || active !== request || !map) return;
+            routeLayer.clearLayers();
+            L.polyline(result.coordinates, {
+              color: "#fff",
+              weight: 8,
+              lineCap: "round",
+              interactive: false,
+            }).addTo(routeLayer);
+            L.polyline(result.coordinates, {
+              color: "#26302c",
+              weight: 4,
+              lineCap: "round",
+              interactive: false,
+            }).addTo(routeLayer);
+            bounds.current = L.latLngBounds([...result.coordinates, a, b]);
+            if (!interacted.current) fit();
+            setRoad(result);
+            setStatus("road");
+            callback.current?.(result);
+          } catch {
+            if (!disposed && active === request) {
+              setStatus("estimate");
+              callback.current?.(null);
+            }
+          } finally {
+            window.clearTimeout(timeout);
+          }
+        };
+        retry.current = () => {
+          void load();
+        };
+        void load();
       } catch {
         if (!disposed) setStatus("unavailable");
-      } finally {
-        window.clearTimeout(timer);
       }
     })();
     return () => {
       disposed = true;
-      controller.abort();
-      window.clearTimeout(timer);
+      request?.abort();
+      resize?.disconnect();
+      retry.current = null;
       mapRef.current = null;
+      bounds.current = null;
       map?.remove();
     };
-  }, [from, to, known, expanded, pickupTime, c]);
-  if (!known)
-    return (
-      <div className="ad-map-placeholder">
-        <MapPin size={26} />
-        <strong>
-          {c("Your route, confirmed personally.", "Votre itinéraire, confirmé personnellement.")}
-        </strong>
-        <p>
-          {c(
-            "Our team will confirm the exact pickup point and route for this address.",
-            "Notre équipe confirmera le lieu exact et l'itinéraire pour cette adresse.",
-          )}
-        </p>
-      </div>
-    );
+    // Time, language, vehicle and price edits must not recreate or recenter the map.
+  }, [start, end, known]);
+  const fit = () => {
+    interacted.current = false;
+    if (bounds.current)
+      mapRef.current?.fitBounds(bounds.current, {
+        ...mapPadding(host.current),
+        maxZoom: 14,
+        animate: false,
+      });
+  };
+  const duration = road ? routeDuration(road.durationSeconds) : null;
   return (
-    <div className={"ad-map " + (expanded ? "ad-map-expanded" : "")}>
-      <div
-        ref={host}
-        className="ad-map-canvas"
-        aria-label={c("Indicative route map", "Carte indicative du trajet")}
-      />
-      <span className="ad-map-label">
-        {status === "road"
-          ? c("Indicative driving route", "Itinéraire routier indicatif")
-          : status === "unavailable"
-            ? c(
-                "Map unavailable · journey details are shown below",
-                "Carte indisponible · détails du trajet ci-dessous",
-              )
-            : c(
-                "Approximate route · not live navigation",
-                "Trajet approximatif · sans navigation en temps réel",
-              )}
-      </span>
-      {!expanded && <span className="ad-map-time">{pickupTime}</span>}
-      {expanded && (
-        <button
-          className="ad-map-recenter"
-          aria-label={c("Recenter route", "Recentrer le trajet")}
-          onClick={() => {
-            const start = coordinate(from),
-              end = coordinate(to);
-            if (start && end)
-              mapRef.current?.fitBounds(
-                [
-                  [start.lat, start.lng],
-                  [end.lat, end.lng],
-                ],
-                { padding: [80, 105], maxZoom: 13 },
-              );
+    <div className={"ad-map ad-clean-map " + (expanded ? "ad-map-expanded" : "")}>
+      {known ? (
+        <div
+          ref={host}
+          className="ad-map-canvas"
+          onPointerDown={() => {
+            interacted.current = true;
           }}
-        >
-          <MapPin size={16} />
-        </button>
+          onKeyDown={() => {
+            interacted.current = true;
+          }}
+          role="region"
+          aria-label={c(
+            "Route map. A is pickup, B is destination.",
+            "Carte du trajet. A : départ, B : destination.",
+          )}
+        />
+      ) : (
+        <div className="ad-clean-map-empty">
+          <MapPin size={28} />
+          <strong>{c("A journey made for you", "Un trajet sur mesure")}</strong>
+          <p>
+            {c(
+              "Our team will confirm the exact route and meeting point.",
+              "Notre équipe confirmera le trajet exact et le rendez-vous.",
+            )}
+          </p>
+        </div>
       )}
+      {known && (
+        <>
+          <div className="ad-map-heading">
+            <span>{c("Your route", "Votre itinéraire")}</span>
+            <strong aria-live="polite">
+              {status === "loading"
+                ? c("Finding your road route…", "Recherche de votre itinéraire…")
+                : duration
+                  ? (duration.hours ? duration.hours + " h " : "") +
+                    (duration.minutes ? duration.minutes + " min" : "") +
+                    " · " +
+                    Math.round(road!.distanceMeters / 1000) +
+                    " km"
+                  : c("Route preview", "Aperçu du trajet")}
+            </strong>
+          </div>
+          <div className="ad-clean-map-controls">
+            <button
+              type="button"
+              aria-label={c("Zoom in", "Zoom avant")}
+              onClick={() => {
+                interacted.current = true;
+                mapRef.current?.zoomIn();
+              }}
+            >
+              <Plus size={18} />
+            </button>
+            <button
+              type="button"
+              aria-label={c("Zoom out", "Zoom arrière")}
+              onClick={() => {
+                interacted.current = true;
+                mapRef.current?.zoomOut();
+              }}
+            >
+              <Minus size={18} />
+            </button>
+            <button
+              type="button"
+              aria-label={c("Fit entire route", "Voir tout le trajet")}
+              onClick={fit}
+            >
+              <LocateFixed size={17} />
+            </button>
+            {onExpand && (
+              <button
+                type="button"
+                aria-label={c("Expand map", "Agrandir la carte")}
+                onClick={onExpand}
+              >
+                <Maximize2 size={16} />
+              </button>
+            )}
+          </div>
+        </>
+      )}
+      <div className="ad-map-journey-card">
+        <div>
+          <b>A</b>
+          <span>
+            <small>
+              {c("Pickup", "Départ")} · {pickupTime}
+            </small>
+            <strong>{from}</strong>
+          </span>
+        </div>
+        <div>
+          <b>B</b>
+          <span>
+            <small>{c("Destination", "Arrivée")}</small>
+            <strong>{to}</strong>
+          </span>
+        </div>
+        {known && (
+          <p>
+            {status === "road"
+              ? c(
+                  "Approximate driving time · traffic may vary",
+                  "Temps de trajet indicatif · selon la circulation",
+                )
+              : status === "loading"
+                ? c("Preparing your route", "Préparation du trajet")
+                : c(
+                    "Preview only · road route could not load",
+                    "Aperçu · itinéraire routier indisponible",
+                  )}
+            {(status === "estimate" || status === "unavailable") && (
+              <button type="button" onClick={() => retry.current?.()}>
+                <RotateCw size={12} />
+                {c("Retry", "Réessayer")}
+              </button>
+            )}
+          </p>
+        )}
+      </div>
     </div>
   );
 }

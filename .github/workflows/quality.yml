@@ -20,8 +20,8 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - name: Type check
         run: pnpm exec tsc --noEmit
-      - name: Booking and tariff checks
-        run: node --test tests/booking.test.mjs
+      - name: Booking, tariff and routing checks
+        run: node --test tests/booking.test.mjs tests/routing.test.mjs
       - name: Production build
         run: pnpm build
       - name: Render production pages
