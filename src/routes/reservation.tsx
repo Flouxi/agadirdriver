@@ -2,20 +2,21 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import {
   ArrowRight,
-  ArrowLeft,
   ArrowLeftRight,
   Briefcase,
   Check,
+  ChevronDown,
   Clock3,
+  Info,
+  MapPin,
   Pencil,
+  Plane,
   ShieldCheck,
   Users,
-  MapPin,
 } from "lucide-react";
-import Header from "../components/Header";
-import Footer from "../components/Footer";
+import BookingHeader from "../components/BookingHeader";
+import BookingDialog from "../components/BookingDialog";
 import BookingBar from "../components/BookingBar";
-import BookingProgress from "../components/BookingProgress";
 import RouteMap from "../components/RouteMap";
 import { VEHICLES } from "../data";
 import {
@@ -42,20 +43,15 @@ function Reservation() {
   const booking = Route.useSearch();
   const navigate = useNavigate();
   const c = useCopy();
-  const vehicleText = useVehicleText();
+  const vt = useVehicleText();
   const { lang } = useI18n();
-  const [editing, setEditing] = useState(false);
+  const invalid = validateBooking(booking);
+  const [editing, setEditing] = useState(!!invalid);
   const [editingReturn, setEditingReturn] = useState(false);
-  useEffect(() => {
-    if (editing)
-      document
-        .getElementById("booking-interface")
-        ?.scrollIntoView({ behavior: "smooth", block: "center" });
-  }, [editing, editingReturn]);
   const [selectedId, setSelectedId] = useState(booking.vehicleId);
-  const [filter, setFilter] = useState("all");
-  const eligible = VEHICLES.filter((v) => fitsPassengers(v, booking.pax));
-  const options = eligible.map((vehicle) => ({
+  const [detailId, setDetailId] = useState("");
+  const [mobileSummary, setMobileSummary] = useState(false);
+  const options = VEHICLES.filter((v) => fitsPassengers(v, booking.pax)).map((vehicle) => ({
     vehicle,
     pricing: calculateRoutePrice({
       from: booking.from,
@@ -66,413 +62,417 @@ function Reservation() {
       hasReturn: booking.hasReturn,
     }),
   }));
-  const selected = options.find((option) => option.vehicle.id === selectedId) ?? options[0];
-  const visible = options.filter(
-    ({ vehicle }) =>
-      filter === "all" ||
-      (filter === "sedan" && vehicle.passengers <= 4) ||
-      (filter === "group" && vehicle.passengers > 4),
-  );
-  const invalid = validateBooking(booking);
+  const selected = options.find((o) => o.vehicle.id === selectedId) ?? options[0];
+  const detail = VEHICLES.find((v) => v.id === detailId);
   const money = (amount: number) =>
     new Intl.NumberFormat(lang === "FR" ? "fr-FR" : "en-GB", {
-      style: "currency",
-      currency: "EUR",
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
     }).format(amount);
-  const day = (value: string) =>
-    new Date(value + "T12:00:00").toLocaleDateString(lang === "FR" ? "fr-FR" : "en-GB", {
-      day: "numeric",
-      month: "short",
-      year: "numeric",
-    });
+  const date = booking.date
+    ? new Date(booking.date + "T12:00:00").toLocaleDateString(lang === "FR" ? "fr-FR" : "en-GB", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      })
+    : "—";
+  const edit = (withReturn = false) => {
+    setEditingReturn(withReturn);
+    setEditing(true);
+  };
   const update = (next: BookingSearch) => {
     setEditing(false);
-    setSelectedId("");
+    setSelectedId(next.vehicleId);
     void navigate({ to: "/reservation", search: next });
   };
   const proceed = () => {
     if (selected && !invalid)
       void navigate({ to: "/checkout", search: { ...booking, vehicleId: selected.vehicle.id } });
   };
+  useEffect(() => {
+    setMobileSummary(false);
+  }, [booking]);
+  const total =
+    invalid || !selected
+      ? "—"
+      : selected.pricing.quoteRequired
+        ? c("On quotation", "Sur devis")
+        : money(selected.pricing.eur);
   return (
-    <div className="ad-site ad-reservation">
-      <Header />
-      <BookingProgress />
-      <main className="ad-shell ad-reservation-main">
-        <div className="ad-heading-row">
-          <div>
-            <a href="/" className="ad-back">
-              <ArrowLeft size={15} />
-              {c("Back to home", "Retour à l'accueil")}
-            </a>
-            <h1>{c("Pick your ride.", "Choisissez votre véhicule.")}</h1>
-            <p>
-              {c(
-                "Your journey. Your space. Your comfort.",
-                "Votre trajet. Votre espace. Votre confort.",
-              )}
-            </p>
-          </div>
-          <span className="ad-currency">EUR · {c("per vehicle", "par véhicule")}</span>
-        </div>
-        <div className="ad-trip-strip">
-          <div>
-            <MapPin size={18} />
-            <span>
-              <strong>{booking.from || c("Choose pickup", "Choisir le départ")}</strong>
-              <small>
+    <div className="ad-site ad-booking-workspace">
+      <BookingHeader />
+      <main className="ad-booking-layout">
+        <section className="ad-booking-map" aria-label={c("Your route", "Votre itinéraire")}>
+          {booking.type === "transfer" && booking.from && booking.to ? (
+            <RouteMap
+              from={booking.from}
+              to={booking.to}
+              pickupTime={booking.time}
+              dropoffTime=""
+              expanded
+            />
+          ) : (
+            <div className="ad-booking-map-empty">
+              <MapPin size={30} />
+              <h2>{c("Your journey starts here", "Votre voyage commence ici")}</h2>
+              <p>
                 {booking.type === "hourly"
-                  ? booking.hours + " " + c("hours with your driver", "heures avec chauffeur")
-                  : booking.to || c("Choose destination", "Choisir la destination")}
+                  ? booking.hours +
+                    " " +
+                    c("hours with your private driver", "heures avec votre chauffeur privé")
+                  : c(
+                      "Choose your pickup and destination to see your route.",
+                      "Choisissez votre départ et votre destination pour voir le trajet.",
+                    )}
+              </p>
+              <button className="ad-secondary" onClick={() => edit()}>
+                {c("Edit trip", "Modifier le trajet")}
+                <Pencil size={14} />
+              </button>
+            </div>
+          )}
+        </section>
+        <section className="ad-booking-vehicles" aria-labelledby="vehicle-heading">
+          <h1 id="vehicle-heading">{c("Choose your vehicle", "Choisissez votre véhicule")}</h1>
+          <button
+            className="ad-booking-mobile-trip"
+            onClick={() => setMobileSummary(!mobileSummary)}
+            aria-expanded={mobileSummary}
+          >
+            <span>
+              <strong>{booking.from || c("Your booking", "Votre trajet")}</strong>
+              <small>
+                {date} · {booking.time} · {booking.pax} {c("passengers", "passagers")}
               </small>
             </span>
-          </div>
-          <div>
-            <Clock3 size={17} />
-            <span>
-              {day(booking.date)} · {booking.time}
-            </span>
-            <span>
-              <Users size={16} />
-              {booking.pax}
-            </span>
-          </div>
-          <button
-            className="ad-text-button"
-            onClick={() => {
-              setEditingReturn(false);
-              setEditing(!editing);
-            }}
-            aria-expanded={editing}
-          >
-            <Pencil size={14} />
-            {c("Edit ride", "Modifier le trajet")}
+            <ChevronDown size={18} />
           </button>
-        </div>
-        {(editing || !!invalid) && (
-          <div className="ad-edit-booking">
-            {invalid && (
-              <p role="alert" className="ad-form-error">
+          {invalid ? (
+            <div className="ad-booking-no-route">
+              <MapPin size={28} />
+              <h2>{c("Where would you like to go?", "Où souhaitez-vous aller ?")}</h2>
+              <p>
                 {c(
-                  "Please complete your route and choose a future pickup time before continuing.",
-                  "Complétez votre trajet et choisissez une date de départ future pour continuer.",
+                  "Set your route and a future pickup to compare vehicles and prices.",
+                  "Indiquez votre trajet et un départ futur pour comparer les véhicules et tarifs.",
                 )}
               </p>
-            )}
-            <BookingBar
-              key={JSON.stringify(booking) + String(editingReturn)}
-              initial={
-                editingReturn
-                  ? {
-                      ...booking,
-                      hasReturn: true,
-                      returnDate: booking.returnDate || nextDate(booking.date),
-                    }
-                  : booking
-              }
-              onSearch={update}
-              light
-            />
-          </div>
-        )}
-        <div className="ad-reservation-grid">
-          <div className="ad-vehicle-column">
-            <div className="ad-route-preview">
-              {booking.type === "transfer" && booking.from && booking.to ? (
-                <RouteMap
-                  from={booking.from}
-                  to={booking.to}
-                  pickupTime={booking.time}
-                  dropoffTime={c("Estimated route", "Itinéraire estimé")}
-                />
-              ) : (
-                <div className="ad-hourly-preview">
-                  <Clock3 size={32} />
-                  <h2>{c("A driver for your day", "Un chauffeur pour votre journée")}</h2>
-                  <p>
-                    {booking.hours}{" "}
-                    {c(
-                      "hours · Stops and mileage confirmed with our team",
-                      "heures · Arrêts et kilométrage confirmés avec notre équipe",
-                    )}
-                  </p>
-                </div>
-              )}
+              <button className="ad-primary" onClick={() => edit()}>
+                {c("Choose my route", "Choisir mon trajet")}
+                <ArrowRight size={16} />
+              </button>
             </div>
-            <div className="ad-vehicle-list-heading">
-              <h2>
-                {c("Choose your vehicle", "Choisissez votre véhicule")}
-                <small>
-                  {options.length} {c("options for your group", "options pour votre groupe")}
-                </small>
-              </h2>
-              <div className="ad-filter-tabs">
-                {[
-                  { id: "all", label: c("All", "Tous") },
-                  { id: "sedan", label: c("Sedans", "Berlines") },
-                  { id: "group", label: c("Vans & groups", "Vans et groupes") },
-                ].map((item) => (
-                  <button
-                    key={item.id}
-                    aria-pressed={filter === item.id}
-                    onClick={() => setFilter(item.id)}
-                  >
-                    {item.label}
-                  </button>
-                ))}
-              </div>
-            </div>
+          ) : (
             <div
-              className="ad-vehicle-list"
+              className="ad-booking-vehicle-scroll"
               role="radiogroup"
               aria-label={c("Vehicle class", "Catégorie de véhicule")}
             >
-              {visible.map(({ vehicle, pricing }) => (
-                <button
-                  type="button"
-                  role="radio"
-                  aria-checked={selected?.vehicle.id === vehicle.id}
-                  className={
-                    "ad-vehicle-option " +
-                    (selected?.vehicle.id === vehicle.id ? "ad-selected" : "")
-                  }
+              {options.map(({ vehicle, pricing }) => (
+                <article
                   key={vehicle.id}
-                  onClick={() => setSelectedId(vehicle.id)}
+                  className={
+                    "ad-book-vehicle " +
+                    (selected?.vehicle.id === vehicle.id ? "ad-book-vehicle-selected" : "")
+                  }
                 >
-                  <div className="ad-vehicle-image">
-                    <img src={vehicle.image} alt={vehicleText(vehicle.name)} />
-                  </div>
-                  <div className="ad-vehicle-description">
-                    <div className="ad-vehicle-title">
-                      <h3>{vehicleText(vehicle.name)}</h3>
-                      {vehicle.id === "comfort-sedan" && (
-                        <span className="ad-recommended">{c("Recommended", "Recommandé")}</span>
-                      )}
-                      {vehicle.onRequest && (
-                        <span className="ad-request-badge">{c("On request", "Sur demande")}</span>
-                      )}
-                    </div>
-                    <p>{vehicleText(vehicle.carModels)}</p>
-                    <div className="ad-capacity">
-                      <span>
+                  <input
+                    className="ad-sr-only"
+                    id={"vehicle-" + vehicle.id}
+                    type="radio"
+                    name="vehicle"
+                    value={vehicle.id}
+                    checked={selected?.vehicle.id === vehicle.id}
+                    onChange={() => setSelectedId(vehicle.id)}
+                    aria-label={
+                      vt(vehicle.name) +
+                      " · " +
+                      (pricing.quoteRequired
+                        ? c("On quotation", "Sur devis")
+                        : "EUR " + money(pricing.eur))
+                    }
+                  />
+                  <label className="ad-book-vehicle-hit" htmlFor={"vehicle-" + vehicle.id}>
+                    <span className="ad-sr-only">
+                      {c("Select", "Choisir")} {vt(vehicle.name)}
+                    </span>
+                  </label>
+                  <img className="ad-book-vehicle-image" src={vehicle.image} alt="" />
+                  <div className="ad-book-vehicle-copy">
+                    <h2>
+                      {vt(vehicle.name)}
+                      <button
+                        type="button"
+                        className="ad-book-vehicle-info"
+                        aria-label={c("Details: ", "Détails : ") + vt(vehicle.name)}
+                        onClick={() => setDetailId(vehicle.id)}
+                      >
+                        <Info size={15} />
+                      </button>
+                    </h2>
+                    {vehicle.id === "economy-sedan" && (
+                      <span className="ad-book-vehicle-badge">
+                        {c("Best value", "Meilleur prix")}
+                      </span>
+                    )}
+                    {vehicle.id === "comfort-sedan" && (
+                      <span className="ad-book-vehicle-badge">
+                        {c("Most popular", "Le plus populaire")}
+                      </span>
+                    )}
+                    {vehicle.onRequest && (
+                      <span className="ad-book-vehicle-badge">
+                        {c("On request", "Sur demande")}
+                      </span>
+                    )}
+                    <p>{vt(vehicle.carModels)}</p>
+                    <div className="ad-book-capacity">
+                      <span title={c("Passengers", "Passagers")}>
                         <Users size={15} />
-                        {c("Up to", "Jusqu'à")} {vehicle.passengers}
+                        {vehicle.passengers}
                       </span>
-                      <span>
-                        <Briefcase size={15} />
-                        {vehicle.luggage} {c("bags", "bagages")}
+                      <span title={vt(vehicle.luggageNote)}>
+                        <Briefcase size={14} />
+                        {vehicle.luggage}
                       </span>
                     </div>
-                    <small>{vehicleText(vehicle.luggageNote)}</small>
                   </div>
-                  <div className="ad-vehicle-price">
+                  <div className="ad-book-vehicle-fare">
                     {pricing.quoteRequired ? (
-                      <strong>{c("Get a quote", "Sur devis")}</strong>
+                      <strong className="ad-book-quote">{c("Get a quote", "Sur devis")}</strong>
                     ) : (
                       <>
+                        <small>EUR</small>
                         <strong>{money(pricing.eur)}</strong>
-                        <small>
-                          {booking.hasReturn
-                            ? c("Total, return included", "Total avec retour")
-                            : c("Total per vehicle", "Total par véhicule")}
-                        </small>
-                        {(pricing.source !== "fixed-route" || vehicle.onRequest) && (
-                          <small>{c("Subject to confirmation", "À confirmer")}</small>
-                        )}
                       </>
                     )}
-                    <span className="ad-radio-dot">
-                      {selected?.vehicle.id === vehicle.id && <Check size={12} />}
-                    </span>
                   </div>
-                </button>
+                </article>
               ))}
-              {!visible.length && (
-                <div className="ad-empty">
-                  <h3>
-                    {c(
-                      "No vehicles in this category fit your group.",
-                      "Aucun véhicule de cette catégorie ne convient à votre groupe.",
-                    )}
-                  </h3>
-                  <button className="ad-text-button" onClick={() => setFilter("all")}>
-                    {c("Show all suitable vehicles", "Voir les véhicules adaptés")}
-                    <ArrowRight size={15} />
-                  </button>
-                </div>
-              )}
             </div>
-            {booking.type === "transfer" && (
-              <div className="ad-return-banner">
-                <ArrowLeftRight size={24} />
-                <div>
-                  <h3>
-                    {booking.hasReturn
-                      ? c("Your return is included.", "Votre retour est inclus.")
-                      : c(
-                          "Round trip? Make it effortless.",
-                          "Un aller-retour ? Simplifiez-vous la vie.",
-                        )}
-                  </h3>
-                  <p>
-                    {booking.hasReturn
-                      ? day(booking.returnDate) + " · " + booking.returnTime
-                      : c(
-                          "Set your return pickup now and keep both journeys together.",
-                          "Ajoutez votre retour pour organiser les deux trajets ensemble.",
-                        )}
-                  </p>
-                </div>
-                <button
-                  className="ad-secondary"
-                  onClick={() => {
-                    setEditingReturn(true);
-                    setEditing(true);
-                    document
-                      .getElementById("booking-interface")
-                      ?.scrollIntoView({ behavior: "smooth" });
-                  }}
-                >
-                  {booking.hasReturn ? c("Edit", "Modifier") : c("Add return", "Ajouter retour")}
-                </button>
-              </div>
-            )}
-            <div className="ad-inclusions">
-              <ShieldCheck size={24} />
-              <div>
-                <h3>{c("Know what you're booking.", "Voyagez en toute transparence.")}</h3>
-                <p>
-                  {c(
-                    "Private door-to-door service. Airport meet & greet and flight tracking for airport pickups. Fuel, standard parking and tolls included in published transfer fares. Exact address, luggage and availability confirmed before booking.",
-                    "Service privé de porte à porte. Accueil et suivi du vol pour les départs aéroport. Carburant, parking standard et péages inclus dans les tarifs de transfert publiés. Adresse exacte, bagages et disponibilité confirmés avant réservation.",
-                  )}
-                </p>
-              </div>
+          )}
+          <div className="ad-booking-continue">
+            <p>
+              <ShieldCheck size={15} />
+              {c(
+                "Private ride · Local drivers · Clear pricing",
+                "Trajet privé · Chauffeurs locaux · Prix transparents",
+              )}
+            </p>
+            <button
+              className="ad-primary ad-full"
+              disabled={!!invalid || !selected}
+              onClick={proceed}
+            >
+              {c("Continue", "Continuer")}
+              <ArrowRight size={18} />
+            </button>
+          </div>
+        </section>
+        <aside
+          className={"ad-booking-side " + (mobileSummary ? "ad-booking-side-open" : "")}
+          aria-label={c("Your booking", "Votre trajet")}
+        >
+          <div className="ad-booking-side-title">
+            <h2>{c("Your Booking", "Votre trajet")}</h2>
+            <button onClick={() => edit()} aria-label={c("Edit trip", "Modifier le trajet")}>
+              <Pencil size={18} />
+            </button>
+          </div>
+          <p className="ad-booking-side-meta">
+            {date}
+            <span>
+              <Users size={13} />
+              {booking.pax} {c("Passengers", "Passagers")}
+            </span>
+          </p>
+          <div className="ad-booking-route">
+            <div>
+              <span className="ad-route-square" />
+              <strong>{booking.from || c("Choose pickup", "Choisir le départ")}</strong>
+              <p>
+                <span>{c("Morocco local time", "Heure locale du Maroc")}</span>
+                <time>{booking.time}</time>
+              </p>
+            </div>
+            <p className="ad-booking-route-estimate">
+              <Clock3 size={12} />
+              {booking.type === "hourly"
+                ? booking.hours + " h"
+                : selected?.pricing.duration
+                  ? "~ " + selected.pricing.duration
+                  : c("Route confirmed with our team", "Trajet confirmé avec notre équipe")}
+            </p>
+            <div>
+              <span className="ad-route-square ad-route-square-gold" />
+              <strong>
+                {booking.type === "hourly"
+                  ? c("Private driver by the hour", "Chauffeur privé à l'heure")
+                  : booking.to || c("Choose destination", "Choisir la destination")}
+              </strong>
+              <p>
+                {booking.type === "hourly"
+                  ? c("Your stops, your schedule", "Vos arrêts, vos horaires")
+                  : c("Door-to-door service", "Service porte à porte")}
+              </p>
             </div>
           </div>
-          <aside className="ad-booking-summary">
-            <div className="ad-summary-card">
-              <h2>{c("Your booking", "Votre trajet")}</h2>
-              <div className="ad-summary-meta">
-                <span>
-                  {booking.type === "hourly"
-                    ? c("Hourly hire", "À l'heure")
-                    : booking.hasReturn
-                      ? c("Round trip", "Aller-retour")
-                      : c("One way", "Aller simple")}
-                </span>
-                <span>
-                  <Users size={14} />
-                  {booking.pax} {c("passengers", "passagers")}
-                </span>
-              </div>
-              <p className="ad-summary-date">
-                {day(booking.date)} · {booking.time}
-                <small>{c("Morocco local time", "Heure locale du Maroc")}</small>
-              </p>
-              <div className="ad-summary-route">
-                <div>
-                  <small>{c("Pickup", "Départ")}</small>
-                  <strong>{booking.from || "—"}</strong>
-                </div>
-                <div>
-                  <small>
-                    {booking.type === "hourly" ? c("Duration", "Durée") : c("Drop-off", "Arrivée")}
-                  </small>
-                  <strong>
-                    {booking.type === "hourly" ? booking.hours + " h" : booking.to || "—"}
-                  </strong>
-                </div>
-              </div>
-              {selected?.pricing.duration && (
-                <p className="ad-summary-estimate">
-                  <Clock3 size={14} />
-                  {c("Approximate journey", "Trajet approximatif")} · {selected.pricing.duration}
-                </p>
-              )}
-              {booking.hasReturn && (
-                <p className="ad-summary-return">
-                  <ArrowLeftRight size={15} />
-                  {c("Return", "Retour")} · {day(booking.returnDate)} · {booking.returnTime}
-                </p>
-              )}
-              {selected && (
-                <div className="ad-selected-summary">
-                  <img src={selected.vehicle.image} alt="" />
-                  <span>
-                    <small>{c("Selected vehicle", "Véhicule sélectionné")}</small>
-                    <strong>{vehicleText(selected.vehicle.name)}</strong>
-                  </span>
-                </div>
-              )}
-              <div className="ad-summary-total">
-                <span>{c("Total", "Total")}</span>
-                <strong>
-                  {!selected || invalid
-                    ? "—"
-                    : selected.pricing.quoteRequired
-                      ? c("On quotation", "Sur devis")
-                      : money(selected.pricing.eur)}
-                </strong>
-              </div>
-              <p className="ad-fine-print">
+          {booking.type === "transfer" && (
+            <button className="ad-booking-add-return" onClick={() => edit(true)}>
+              <ArrowLeftRight size={15} />
+              {booking.hasReturn
+                ? c("Edit return", "Modifier le retour")
+                : c("Add return", "Ajouter un retour")}
+            </button>
+          )}
+          {booking.hasReturn && (
+            <p className="ad-booking-return-date">
+              {booking.returnDate} · {booking.returnTime}
+            </p>
+          )}
+          <div className="ad-booking-total">
+            <span>{c("Total", "Total")}</span>
+            <strong>{total}</strong>
+            {!invalid && !selected?.pricing.quoteRequired && <small>EUR</small>}
+          </div>
+          <p className="ad-booking-price-caption">
+            {booking.hasReturn
+              ? c("Both journeys · Price per vehicle", "Aller-retour · Prix par véhicule")
+              : c("Entire group · Price per vehicle", "Tout le groupe · Prix par véhicule")}
+          </p>
+          <details className="ad-booking-price-details">
+            <summary>
+              {c("Price details", "Détail du prix")}
+              <ChevronDown size={14} />
+            </summary>
+            <p>
+              {selected?.pricing.quoteRequired
+                ? c(
+                    "The exact route needs a personal quotation.",
+                    "Le trajet exact nécessite un devis personnalisé.",
+                  )
+                : c(
+                    "Published transfer fares include fuel, standard parking and tolls. Our team confirms the final fare and availability before booking.",
+                    "Les tarifs de transfert publiés incluent carburant, parking standard et péages. Notre équipe confirme le tarif final et la disponibilité.",
+                  )}
+            </p>
+            {booking.hasReturn && (
+              <p>
                 {c(
-                  "For your entire group. Final fare and availability confirmed by our team.",
-                  "Pour tout votre groupe. Tarif final et disponibilité confirmés par notre équipe.",
+                  "The combined return tariff includes an 8% discount.",
+                  "Le tarif aller-retour comprend une réduction de 8 %.",
                 )}
               </p>
-              <button
-                className="ad-primary ad-full"
-                onClick={proceed}
-                disabled={!selected || !!invalid}
-              >
-                {c("Continue", "Continuer")}
-                <ArrowRight size={18} />
-              </button>
-              <div className="ad-summary-perks">
-                {[
-                  c("Private vehicle", "Véhicule privé"),
-                  c("Door-to-door service", "Service porte à porte"),
-                  c("Local support", "Assistance locale"),
-                ].map((text) => (
-                  <span key={text}>
-                    <Check size={14} />
-                    {text}
-                  </span>
-                ))}
-              </div>
-              <a
-                className="ad-summary-help"
-                href={BUSINESS.whatsapp}
-                target="_blank"
-                rel="noreferrer"
-              >
-                {c(
-                  "Need help choosing? Chat with us.",
-                  "Besoin d'aide pour choisir ? Contactez-nous.",
-                )}
-              </a>
-            </div>
-          </aside>
-        </div>
+            )}
+          </details>
+          <div className="ad-booking-assurance">
+            <ShieldCheck size={18} />
+            {c("Confirmed personally by our team", "Confirmé par notre équipe")}
+          </div>
+          <div className="ad-booking-included">
+            <span>
+              <Check size={13} />
+              {c("Door-to-door service", "Porte à porte")}
+            </span>
+            <span>
+              <Check size={13} />
+              {c("Meet & greet", "Accueil à l'arrivée")}
+            </span>
+            <span>
+              <Plane size={13} />
+              {c("Flight tracking", "Suivi du vol")}
+            </span>
+            <span>
+              <Users size={13} />
+              {c("Local drivers", "Chauffeurs locaux")}
+            </span>
+          </div>
+          <a
+            className="ad-booking-contact"
+            href={BUSINESS.whatsapp}
+            target="_blank"
+            rel="noreferrer"
+          >
+            {c("Questions? We're here to help.", "Une question ? Nous sommes là.")}
+            <ArrowRight size={14} />
+          </a>
+          <p className="ad-booking-payment-note">
+            {c(
+              "No payment taken online. Fare and payment arrangements confirmed with your booking.",
+              "Aucun paiement en ligne. Tarif et modalités de paiement confirmés avec votre réservation.",
+            )}
+          </p>
+        </aside>
       </main>
-      <div className="ad-mobile-booking-bar">
-        <div>
-          <small>{selected ? vehicleText(selected.vehicle.name) : ""}</small>
-          <strong>
-            {invalid
-              ? "—"
-              : selected?.pricing.quoteRequired
-                ? c("On quotation", "Sur devis")
-                : money(selected?.pricing.eur ?? 0)}
-          </strong>
-        </div>
-        <button className="ad-primary" disabled={!selected || !!invalid} onClick={proceed}>
-          {c("Continue", "Continuer")}
-          <ArrowRight size={17} />
-        </button>
-      </div>
-      <Footer />
+      <BookingDialog
+        open={editing}
+        onOpenChange={setEditing}
+        title={c("Edit your trip", "Modifier votre trajet")}
+        description={c(
+          "Choose your route, pickup and passengers. All times are local to Morocco.",
+          "Choisissez votre trajet, le départ et les passagers. Horaires locaux du Maroc.",
+        )}
+        wide
+      >
+        <BookingBar
+          key={JSON.stringify(booking) + String(editingReturn)}
+          initial={
+            editingReturn
+              ? {
+                  ...booking,
+                  vehicleId: selected?.vehicle.id || booking.vehicleId,
+                  hasReturn: true,
+                  returnDate: booking.returnDate || nextDate(booking.date),
+                }
+              : { ...booking, vehicleId: selected?.vehicle.id || booking.vehicleId }
+          }
+          onSearch={update}
+          light
+        />
+      </BookingDialog>
+      <BookingDialog
+        open={!!detail}
+        onOpenChange={(open) => {
+          if (!open) setDetailId("");
+        }}
+        title={detail ? vt(detail.name) : ""}
+        description={c("Find the right space for your journey.", "L'espace adapté à votre voyage.")}
+      >
+        {detail && (
+          <div className="ad-booking-vehicle-detail">
+            <img src={detail.image} alt={vt(detail.name)} />
+            <p>{vt(detail.carModels)}</p>
+            <div>
+              <span>
+                <Users size={18} />
+                {detail.passengers} {c("passengers", "passagers")}
+              </span>
+              <span>
+                <Briefcase size={18} />
+                {detail.luggage} {c("bags", "bagages")}
+              </span>
+            </div>
+            <p>{vt(detail.luggageNote)}</p>
+            <p>
+              {c(
+                "Vehicle model and any special luggage or child seats are confirmed by our team.",
+                "Le modèle du véhicule, les bagages spéciaux et les sièges enfants sont confirmés par notre équipe.",
+              )}
+            </p>
+            <button
+              className="ad-primary ad-full"
+              disabled={!fitsPassengers(detail, booking.pax)}
+              onClick={() => {
+                setSelectedId(detail.id);
+                setDetailId("");
+              }}
+            >
+              {c("Choose this vehicle", "Choisir ce véhicule")}
+              <ArrowRight size={17} />
+            </button>
+          </div>
+        )}
+      </BookingDialog>
     </div>
   );
 }

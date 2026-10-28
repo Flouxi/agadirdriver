@@ -1,9 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, type FormEvent } from "react";
 import { ArrowLeft, ArrowRight, Check, MessageCircle, ShieldCheck, Users } from "lucide-react";
-import Header from "../components/Header";
+import BookingHeader from "../components/BookingHeader";
 import Footer from "../components/Footer";
-import BookingProgress from "../components/BookingProgress";
+
 import { VEHICLES } from "../data";
 import { BUSINESS } from "../data/seo";
 import { bookingSearchSchema, bookingHref, validateBooking, fitsPassengers } from "../lib/booking";
@@ -108,8 +108,7 @@ function Checkout() {
   };
   return (
     <div className="ad-site">
-      <Header />
-      <BookingProgress step={message ? 3 : 2} />
+      <BookingHeader step={message ? 3 : 2} />
       <main className="ad-shell ad-checkout-main">
         <a className="ad-back" href={bookingHref("/reservation", booking)}>
           <ArrowLeft size={15} />

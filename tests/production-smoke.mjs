@@ -18,6 +18,7 @@ const query = new URLSearchParams({
 });
 for (const [path, marker] of [
   ["/", "booking-interface"],
+  ["/reservation", "Choose your vehicle"],
   ["/reservation?" + query, "Pick your ride"],
   ["/checkout?" + query, "Agadir Driver"],
 ]) {
