@@ -67,6 +67,10 @@ export const BLOG_POSTS = [
       "Compare private transfers, taxis, and buses for the journey from Agadir Al Massira Airport to Taghazout.",
     sections: [
       [
+        "Which airport should I choose for Taghazout?",
+        "Agadir Al Massira (AGA) is the arrival airport used for our Taghazout transfers. Fairmont Taghazout Bay identifies Al Massira as its nearest international airport. Check the arrival airport on your ticket, then send our team your flight number and exact accommodation address before arranging the onward journey.",
+      ],
+      [
         "The easiest option after landing",
         "A pre-arranged private transfer takes you from Agadir Al Massira Airport to your exact hotel, surf camp, or apartment in Taghazout. Send your flight number and accommodation address before travelling.",
       ],
