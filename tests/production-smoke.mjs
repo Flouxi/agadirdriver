@@ -18,9 +18,9 @@ const query = new URLSearchParams({
 });
 for (const [path, marker] of [
   ["/", "booking-interface"],
-  ["/reservation", "Choose your vehicle"],
-  ["/reservation?" + query, "Pick your ride"],
-  ["/checkout?" + query, "Agadir Driver"],
+  ["/reservation", "Choose your ride"],
+  ["/reservation?" + query, "Choose your ride"],
+  ["/checkout?" + query, "Lead passenger"],
 ]) {
   let url = new URL(path, "https://agadirdriver.com");
   let response;
