@@ -1,6 +1,7 @@
 @import "tailwindcss" source(none);
 @source "../src";
 @import "tw-animate-css";
+@import "./font-faces.css";
 
 @theme {
   --font-sans: "Poppins", ui-sans-serif, system-ui, sans-serif;
@@ -265,7 +266,7 @@
 :root {
   --ad-gold: #ffbd39;
   --ad-ink: #121311;
-  --ad-muted: #70736e;
+  --ad-muted: #62665d;
   --ad-line: #e7e8e4;
   --ad-soft: #f6f7f4;
 }
@@ -515,7 +516,8 @@ body {
   width: 140px;
   box-shadow: 0 14px 40px #0003;
 }
-.ad-language-menu button {
+.ad-language-menu button,
+.ad-language-menu a {
   display: block;
   border: 0;
   width: 100%;
@@ -525,10 +527,42 @@ body {
   background: none;
   color: white;
   font-size: 13px;
+  text-decoration: none;
 }
 .ad-language-menu button:hover,
+.ad-language-menu a:hover,
+.ad-language-menu a[aria-current="page"],
 .ad-language-menu button[aria-pressed="true"] {
   background: #ffffff1a;
+}
+.ad-language-menu a:focus-visible {
+  outline: 2px solid var(--ad-gold, #ffbd39);
+  outline-offset: 2px;
+}
+.ad-localized-guide .ad-shell {
+  max-width: 850px;
+}
+.ad-localized-guide .ad-breadcrumbs {
+  color: var(--ad-muted);
+}
+.ad-localized-guide h1 {
+  font-size: clamp(2rem, 4vw, 3.5rem);
+  line-height: 1.15;
+  margin-block: 20px;
+}
+.ad-localized-guide-sections {
+  display: grid;
+  gap: 32px;
+  margin-block-start: 40px;
+}
+.ad-localized-guide-sections p {
+  color: var(--ad-muted, #70736e);
+  line-height: 1.8;
+  margin-block-start: 12px;
+}
+.ad-service-hero .ad-service-intro,
+.ad-service-hero .ad-service-reassurance {
+  color: #d5d8d0;
 }
 .ad-header-contact {
   border: 1px solid #ffffff50;
@@ -2738,7 +2772,7 @@ body {
   margin: 22px 4px 10px;
 }
 .ad-journey-steps article > h3 > span {
-  color: #74746e;
+  color: #62665d;
 }
 .ad-journey-steps article > p {
   font:
@@ -2824,7 +2858,7 @@ body {
   gap: 4px;
   align-items: center;
   font-size: 9px;
-  color: #888;
+  color: #666;
 }
 .ad-step-mini-vehicles b {
   font-size: 10px;
@@ -2832,7 +2866,7 @@ body {
 .ad-step-mini-booking > small {
   display: block;
   font-size: 8px;
-  color: #81857a;
+  color: #62665d;
   margin-top: 12px;
 }
 .ad-step-scene-arrival {
@@ -2896,7 +2930,7 @@ body {
   font:
     8px Arial,
     sans-serif;
-  color: #81847a;
+  color: #62665d;
 }
 .ad-step-scene-map > svg:first-child {
   position: absolute;

@@ -4,6 +4,7 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
+  useRouterState,
   HeadContent,
   Scripts,
   type ErrorComponentProps,
@@ -14,6 +15,7 @@ import appCss from "../styles.css?url";
 import { LanguageProvider } from "../lib/i18n";
 import { PassengerDraftProvider } from "../lib/passenger-draft";
 import { reportError } from "../lib/error-reporting";
+import { languageForPath } from "../lib/localized-paths";
 
 function NotFoundComponent() {
   return (
@@ -127,11 +129,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "icon", type: "image/png", sizes: "2048x2048", href: "/favicon.png" },
       { rel: "shortcut icon", type: "image/x-icon", href: "/favicon.ico" },
       { rel: "apple-touch-icon", sizes: "2048x2048", href: "/favicon.png" },
-      { rel: "preconnect", href: "https://fonts.googleapis.com" },
-      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
-        rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap",
+        rel: "preload",
+        as: "font",
+        type: "font/woff2",
+        href: "/fonts/poppins/poppins-latin-400.woff2",
+        crossOrigin: "anonymous",
       },
     ],
   }),
@@ -142,8 +145,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 });
 
 function RootShell({ children }: { children: ReactNode }) {
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
   return (
-    <html lang="en">
+    <html lang={pathname.startsWith("/fr/") ? "fr" : "en"}>
       <head>
         <HeadContent />
         <script
@@ -186,10 +190,11 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
 
   return (
     <QueryClientProvider client={queryClient}>
-      <LanguageProvider>
+      <LanguageProvider routeLanguage={languageForPath(pathname)}>
         {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
         <PassengerDraftProvider>
           <Outlet />

@@ -4,13 +4,19 @@ import { BUSINESS } from "../data/seo";
 import { AIRPORTS } from "../data/locations";
 import { useCopy } from "../lib/copy";
 import { useI18n } from "../lib/i18n";
+import { useRouterState } from "@tanstack/react-router";
+import { localizedHref, localizedPath } from "../lib/localized-paths";
 export default function Footer() {
   const c = useCopy();
   const { lang, setLang } = useI18n();
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
   const services = [
     [c("Airport transfers", "Transferts aéroport"), "/agadir-airport-transfer"],
     [c("City rides", "Trajets entre villes"), "/agadir-taxi"],
-    [c("Chauffeur by the hour", "Chauffeur à l'heure"), "/?service=hourly#booking-interface"],
+    [
+      c("Chauffeur by the hour", "Chauffeur à l'heure"),
+      lang === "FR" ? "/fr/chauffeur-prive-agadir" : "/?service=hourly#booking-interface",
+    ],
     [c("Private driver", "Chauffeur privé"), "/private-driver-agadir"],
     [
       c("For travel agencies", "Pour les agences de voyages"),
@@ -38,11 +44,28 @@ export default function Footer() {
             <p>{c("Your local connection to Morocco.", "Votre partenaire local au Maroc.")}</p>
             <label className="ad-footer-language">
               {c("Change language", "Changer de langue")}
-              <select value={lang} onChange={(e) => setLang(e.target.value as "EN" | "FR")}>
+              <select
+                value={lang}
+                onChange={(e) => {
+                  const next = e.target.value as "EN" | "FR";
+                  setLang(next);
+                  const target = localizedPath(pathname, next);
+                  if (target && target !== pathname)
+                    window.location.assign(target + window.location.search + window.location.hash);
+                }}
+              >
                 <option value="EN">ENGLISH</option>
                 <option value="FR">FRANÇAIS</option>
               </select>
             </label>
+            {localizedPath(pathname, lang === "FR" ? "EN" : "FR") && (
+              <a
+                href={localizedPath(pathname, lang === "FR" ? "EN" : "FR")}
+                hrefLang={lang === "FR" ? "en" : "fr"}
+              >
+                {lang === "FR" ? "Read this page in English" : "Lire cette page en français"}
+              </a>
+            )}
             <p>
               {c("Private rides. A personal welcome.", "Trajets privés. Un accueil personnel.")}
             </p>
@@ -84,7 +107,7 @@ export default function Footer() {
             <ul>
               {services.map(([label, href]) => (
                 <li key={label}>
-                  <a href={href}>
+                  <a href={localizedHref(href, lang === "FR" ? "FR" : "EN")}>
                     {label}
                     <ArrowUpRight size={11} />
                   </a>
@@ -94,8 +117,8 @@ export default function Footer() {
           </div>
           <div id="footer-help">
             <h3>{c("Good to know", "À savoir")}</h3>
-            <a href="/blog">
-              {c("Travel journal", "Carnet de voyage")}
+            <a href={lang === "FR" ? "/fr/guides/agadir-taghazout" : "/blog"}>
+              {c("Travel journal", "Guide Agadir–Taghazout")}
               <ArrowUpRight size={11} />
             </a>
             {[

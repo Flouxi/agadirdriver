@@ -1,5 +1,6 @@
 import { useCopy } from "../lib/copy";
 import { BUSINESS } from "../data/seo";
+import { jsonLd } from "../lib/seo-head";
 
 export default function BookingFaqs() {
   const c = useCopy();
@@ -55,6 +56,20 @@ export default function BookingFaqs() {
   ];
   return (
     <section className="ad-section ad-booking-faq" id="help" aria-labelledby="booking-faq-heading">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: jsonLd({
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            mainEntity: questions.map(([name, text]) => ({
+              "@type": "Question",
+              name,
+              acceptedAnswer: { "@type": "Answer", text },
+            })),
+          }),
+        }}
+      />
       <div className="ad-shell">
         <div className="ad-section-heading">
           <h2 id="booking-faq-heading">{c("Before you book", "Avant de réserver")}</h2>

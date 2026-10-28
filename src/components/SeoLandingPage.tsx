@@ -10,13 +10,17 @@ import BookingFaqs from "./BookingFaqs";
 import RouteFareTable from "./RouteFareTable";
 import { SERVICE_DETAILS } from "../data/service-details";
 import { jsonLd } from "../lib/seo-head";
+import { localizedPath } from "../lib/localized-paths";
+import { frenchPage } from "../data/french-pages";
 
 export default function SeoLandingPage({
   page,
   path,
+  canonicalPath = path,
 }: {
   page: ServicePage;
   path: keyof typeof SERVICE_PAGES;
+  canonicalPath?: string;
 }) {
   const c = useCopy();
   const hourly = path === "/private-driver-agadir";
@@ -80,25 +84,26 @@ export default function SeoLandingPage({
               "@graph": [
                 {
                   "@type": "Service",
-                  "@id": BUSINESS.url + path + "#service",
+                  "@id": BUSINESS.url + canonicalPath + "#service",
                   name: heading,
                   description: intro,
-                  url: BUSINESS.url + path,
+                  url: BUSINESS.url + canonicalPath,
                   provider: { "@id": BUSINESS.url + "/#business" },
                   areaServed: destination || "Agadir",
                 },
                 {
                   "@type": "WebPage",
-                  "@id": BUSINESS.url + path + "#webpage",
-                  url: BUSINESS.url + path,
+                  "@id": BUSINESS.url + canonicalPath + "#webpage",
+                  url: BUSINESS.url + canonicalPath,
+                  inLanguage: canonicalPath.startsWith("/fr/") ? "fr" : "en",
                   name: heading,
                   description: intro,
-                  mainEntity: { "@id": BUSINESS.url + path + "#service" },
-                  breadcrumb: { "@id": BUSINESS.url + path + "#breadcrumb" },
+                  mainEntity: { "@id": BUSINESS.url + canonicalPath + "#service" },
+                  breadcrumb: { "@id": BUSINESS.url + canonicalPath + "#breadcrumb" },
                 },
                 {
                   "@type": "BreadcrumbList",
-                  "@id": BUSINESS.url + path + "#breadcrumb",
+                  "@id": BUSINESS.url + canonicalPath + "#breadcrumb",
                   itemListElement: [
                     {
                       "@type": "ListItem",
@@ -106,7 +111,12 @@ export default function SeoLandingPage({
                       name: "Agadir Driver",
                       item: BUSINESS.url + "/",
                     },
-                    { "@type": "ListItem", position: 2, name: heading, item: BUSINESS.url + path },
+                    {
+                      "@type": "ListItem",
+                      position: 2,
+                      name: heading,
+                      item: BUSINESS.url + canonicalPath,
+                    },
                   ],
                 },
               ],
@@ -228,10 +238,17 @@ export default function SeoLandingPage({
               {Object.entries(SERVICE_PAGES)
                 .filter(([url]) => url !== path)
                 .map(([url, related]) => (
-                  <Link key={url} to={url}>
-                    <span>{related.service}</span>
+                  <a
+                    key={url}
+                    href={localizedPath(url, canonicalPath.startsWith("/fr/") ? "FR" : "EN") ?? url}
+                  >
+                    <span>
+                      {canonicalPath.startsWith("/fr/") && localizedPath(url, "FR")
+                        ? frenchPage(localizedPath(url, "FR")!).heading
+                        : related.service}
+                    </span>
                     <ArrowRight size={16} />
-                  </Link>
+                  </a>
                 ))}
             </div>
           </div>

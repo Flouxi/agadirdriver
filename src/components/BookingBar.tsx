@@ -171,7 +171,6 @@ export default function BookingBar({ initial, mode, onSearch, light = false }: P
               type="button"
               className="ad-date-field ad-date-picker-trigger"
               onClick={() => setCalendarOpen(true)}
-              aria-label={c("Pickup date and time", "Date et heure de départ")}
             >
               <CalendarDays size={18} />
               <span>

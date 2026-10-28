@@ -13,7 +13,7 @@ export const SERVICE_PAGES = {
     title: "Agadir Airport Transfer & Taxi | Agadir Driver",
     description:
       "Compare private Agadir airport transfers to Agadir, Taghazout and Tamraght. See per-vehicle fares and confirm your ride with our local team.",
-    h1: "Agadir Airport Transfer",
+    h1: "Agadir Airport Transfers",
     intro:
       "Arrange a private transfer from Agadir Al Massira Airport to your hotel, apartment, surf camp, or final destination.",
     service: "Agadir Airport Transfer",
@@ -21,14 +21,14 @@ export const SERVICE_PAGES = {
   "/agadir-taxi": {
     title: "Agadir Taxi & Private City Rides | Agadir Driver",
     description:
-      "Book an Agadir taxi for hotel transfers, city rides, Taghazout, and local journeys by WhatsApp.",
+      "Compare Agadir private city ride fares and arrange pickup from your hotel or address. Our team confirms the route, vehicle and final price.",
     h1: "Agadir Taxi",
     intro:
       "Book a local taxi for Agadir hotels, the city centre, the airport, and nearby Atlantic-coast destinations.",
     service: "Agadir Taxi",
   },
   "/private-driver-agadir": {
-    title: "Private Driver Agadir | Hourly Hire | Agadir Driver",
+    title: "Chauffeur in Agadir | Private Driver Hire | Agadir Driver",
     description:
       "Hire a private driver in Agadir for airport transfers, day trips, business travel, and local rides.",
     h1: "Private Driver in Agadir",
@@ -40,7 +40,7 @@ export const SERVICE_PAGES = {
     title: "Agadir Airport to Taghazout Transfer | Agadir Driver",
     description:
       "Book a private airport transfer from Agadir Airport to Taghazout for hotels and surf camps.",
-    h1: "Airport Transfer to Taghazout",
+    h1: "Agadir Airport to Taghazout Transfer",
     intro:
       "Arrange a direct transfer from Agadir Al Massira Airport to Taghazout hotels, apartments, and surf camps.",
     service: "Airport Transfer to Taghazout",
@@ -49,7 +49,7 @@ export const SERVICE_PAGES = {
     title: "Agadir Airport to Tamraght Transfer | Agadir Driver",
     description:
       "Arrange a private airport transfer from Agadir Airport to Tamraght with your flight details.",
-    h1: "Airport Transfer to Tamraght",
+    h1: "Agadir Airport to Tamraght Transfer",
     intro:
       "Travel directly from Agadir Al Massira Airport to your Tamraght accommodation with a pre-arranged private ride.",
     service: "Airport Transfer to Tamraght",
@@ -67,6 +67,10 @@ export const BLOG_POSTS = [
       "Compare private transfers, taxis, and buses for the journey from Agadir Al Massira Airport to Taghazout.",
     sections: [
       [
+        "Which airport should I choose for Taghazout?",
+        "Agadir Al Massira (AGA) is the arrival airport used for our Taghazout transfers. Fairmont Taghazout Bay identifies Al Massira as its nearest international airport. Check the arrival airport on your ticket, then send our team your flight number and exact accommodation address before arranging the onward journey.",
+      ],
+      [
         "The easiest option after landing",
         "A pre-arranged private transfer takes you from Agadir Al Massira Airport to your exact hotel, surf camp, or apartment in Taghazout. Send your flight number and accommodation address before travelling.",
       ],
@@ -83,9 +87,9 @@ export const BLOG_POSTS = [
   {
     path: "/blog/agadir-airport-transfer-prices-and-booking-guide",
     category: "Travel Planning",
-    title: "Agadir Airport Transfer Prices and Booking Guide",
+    title: "Agadir Airport Taxi Prices: Private Transfer Guide",
     description:
-      "Learn what affects an Agadir airport transfer quote and which details to send when booking by WhatsApp.",
+      "Compare Agadir Driver's private airport-transfer fares per vehicle. See what is included and which journey details are needed to confirm a quote.",
     sections: [
       [
         "Why route details affect the quote",

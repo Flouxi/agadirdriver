@@ -15,20 +15,30 @@ import { useVehicleText } from "../lib/vehicle-copy";
 import type { BookingSearch } from "../lib/booking";
 import {
   HOMEPAGE_HERO_IMAGE_URL,
+  HOMEPAGE_HERO_SRCSET,
   INFO_SECTION_PRIMARY_IMAGE_URL,
   INFO_SECTION_SECONDARY_IMAGE_URL,
 } from "../lib/brand-images";
 export const Route = createFileRoute("/")({
   head: () => {
     const head = seoHead({
-      title: "Agadir Driver | Private Transfers Across Morocco",
+      title: "Agadir Transfers & Private Drivers | Agadir Driver",
       description:
         "Private airport transfers, city rides and hourly chauffeurs in Agadir and across Morocco. Compare vehicles and confirm your request with our local team.",
       path: "/",
     });
     return {
       ...head,
-      links: [...head.links, { rel: "preload", as: "image", href: HOMEPAGE_HERO_IMAGE_URL }],
+      links: [
+        ...head.links,
+        {
+          rel: "preload",
+          as: "image",
+          href: HOMEPAGE_HERO_IMAGE_URL,
+          imageSrcSet: HOMEPAGE_HERO_SRCSET,
+          imageSizes: "100vw",
+        },
+      ],
     };
   },
   component: Home,
@@ -106,7 +116,16 @@ function Home() {
         {c("Skip to content", "Aller au contenu")}
       </a>
       <div className="ad-hero-wrap">
-        <img className="ad-hero-image" src={HOMEPAGE_HERO_IMAGE_URL} alt="" fetchPriority="high" />
+        <img
+          className="ad-hero-image"
+          src={HOMEPAGE_HERO_IMAGE_URL}
+          srcSet={HOMEPAGE_HERO_SRCSET}
+          sizes="100vw"
+          width="1280"
+          height="856"
+          alt=""
+          fetchPriority="high"
+        />
         <Header
           overlay
           onNavClick={(section) => {
@@ -176,7 +195,13 @@ function Home() {
             {services.map((s, i) => (
               <a className={"ad-service-card ad-service-card-" + i} key={s.href} href={s.href}>
                 <div className="ad-service-photo">
-                  <img src={s.image} alt="" loading="lazy" />
+                  <img
+                    src={s.image}
+                    alt=""
+                    loading="lazy"
+                    width={s.image === HOMEPAGE_HERO_IMAGE_URL ? 1280 : 720}
+                    height={s.image === HOMEPAGE_HERO_IMAGE_URL ? 856 : 538}
+                  />
                 </div>
                 <div>
                   <h3>{s.title}</h3>
@@ -211,7 +236,7 @@ function Home() {
                 key={v.id}
                 onClick={() => prefill({ vehicleId: v.id })}
               >
-                <img src={v.image} alt={vt(v.name)} loading="lazy" />
+                <img src={v.image} alt={vt(v.name)} loading="lazy" width="640" height="426" />
                 <h3>{vt(v.name)}</h3>
                 <p>{vt(v.carModels)}</p>
                 <div>
@@ -237,7 +262,7 @@ function Home() {
               <strong>
                 5<span>/5</span>
               </strong>
-              <div className="ad-review-stars" aria-label="5 / 5">
+              <div className="ad-review-stars" role="img" aria-label="5 / 5">
                 {[1, 2, 3, 4, 5].map((n) => (
                   <Star key={n} size={19} fill="currentColor" />
                 ))}
@@ -259,7 +284,7 @@ function Home() {
           <div className="ad-home-review-cards">
             {REVIEWS.slice(0, 3).map((review) => (
               <article key={review.id}>
-                <div className="ad-review-stars" aria-label={review.rating + " / 5"}>
+                <div className="ad-review-stars" role="img" aria-label={review.rating + " / 5"}>
                   {Array.from({ length: review.rating }, (_, i) => (
                     <Star key={i} size={14} fill="currentColor" />
                   ))}
@@ -376,6 +401,8 @@ function Home() {
           </div>
           <img
             src="/assets/agadir88/app-mockup-v2.png"
+            width="500"
+            height="500"
             loading="lazy"
             alt={c("Agadir Driver on mobile", "Agadir Driver sur mobile")}
           />

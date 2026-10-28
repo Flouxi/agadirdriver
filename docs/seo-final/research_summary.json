@@ -1,0 +1,10 @@
+{
+  "keyword_rows": 216,
+  "uk_rows": 127,
+  "france_rows": 89,
+  "mapped": 101,
+  "excluded": 87,
+  "deferred": 28,
+  "proposed_primary_targets": 15,
+  "100000_keyword_test": "not completed; do not substitute generated/unmeasured candidates for Keyword Planner measurements"
+}
