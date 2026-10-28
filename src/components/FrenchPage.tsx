@@ -67,6 +67,12 @@ export default function FrenchPage({ path }: { path: FrenchPath }) {
             <p className="ad-eyebrow">Agadir Driver · Préparer votre trajet</p>
             <h1>{page.heading}</h1>
             <p className="ad-service-intro">{page.intro}</p>
+            <a
+              className="ad-text-button"
+              href={pricing ? "/fr/transfert-aeroport-agadir" : "/fr/taxi-agadir"}
+            >
+              Comparer les véhicules pour votre trajet →
+            </a>
             <div className="ad-localized-guide-sections">
               {page.sections.map(([heading, body]) => (
                 <section key={heading}>

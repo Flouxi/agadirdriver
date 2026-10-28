@@ -240,7 +240,7 @@ export function LanguageProvider({
 
   useEffect(() => {
     document.documentElement.lang = lang.toLowerCase();
-  }, [lang]);
+  }, [lang, routeLanguage]);
 
   const setLang = useCallback((next: Lang) => {
     setLangState(next);

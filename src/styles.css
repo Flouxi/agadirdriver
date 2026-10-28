@@ -557,6 +557,10 @@ body {
   line-height: 1.8;
   margin-block-start: 12px;
 }
+.ad-service-hero .ad-service-intro,
+.ad-service-hero .ad-service-reassurance {
+  color: #d5d8d0;
+}
 .ad-header-contact {
   border: 1px solid #ffffff50;
   border-radius: 9px;
