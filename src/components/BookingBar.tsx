@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import {
   ArrowRight,
+  Check,
   ArrowLeftRight,
   CalendarDays,
   Car,
@@ -11,6 +12,8 @@ import {
 } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
 import LocationPicker from "./LocationPicker";
+import BookingDialog from "./BookingDialog";
+import { useI18n } from "../lib/i18n";
 import {
   bookingSearchSchema,
   defaultPickupDate,
@@ -31,9 +34,17 @@ interface Props {
 export default function BookingBar({ initial, mode, onSearch, light = false }: Props) {
   const c = useCopy();
   const navigate = useNavigate();
-  const [booking, setBooking] = useState<BookingSearch>(() =>
-    bookingSearchSchema.parse({ date: defaultPickupDate(), ...initial }),
-  );
+  const { lang } = useI18n();
+  const [calendarOpen, setCalendarOpen] = useState(false);
+  const [today, setToday] = useState("");
+  const [booking, setBooking] = useState<BookingSearch>(() => ({
+    ...bookingSearchSchema.parse({ ...initial, date: initial?.date || "2000-01-01" }),
+    date: initial?.date || "",
+  }));
+  useEffect(() => {
+    setToday(localDate());
+    if (!initial?.date) setBooking((b) => ({ ...b, date: defaultPickupDate() }));
+  }, [initial?.date]);
   const [picker, setPicker] = useState<"from" | "to" | null>(null);
   const [error, setError] = useState("");
   useEffect(() => {
@@ -131,29 +142,27 @@ export default function BookingBar({ initial, mode, onSearch, light = false }: P
               </span>
             </label>
           )}
-          <div className="ad-date-field">
+          <button
+            type="button"
+            className="ad-date-field ad-date-picker-trigger"
+            onClick={() => setCalendarOpen(true)}
+            aria-label={c("Pickup date and time", "Date et heure de départ")}
+          >
             <CalendarDays size={18} />
-            <div>
-              <small>{c("Pickup date · Morocco time", "Date de départ · heure du Maroc")}</small>
-              <div className="ad-date-inputs">
-                <input
-                  aria-label={c("Pickup date", "Date de départ")}
-                  type="date"
-                  min={localDate()}
-                  value={booking.date}
-                  onChange={(e) => change("date", e.target.value)}
-                  required
-                />
-                <input
-                  aria-label={c("Pickup time", "Heure de départ")}
-                  type="time"
-                  value={booking.time}
-                  onChange={(e) => change("time", e.target.value)}
-                  required
-                />
-              </div>
-            </div>
-          </div>
+            <span>
+              <small>{c("Pickup date", "Date de départ")}</small>
+              <strong>
+                {booking.date
+                  ? new Date(booking.date + "T12:00:00").toLocaleDateString(
+                      lang === "FR" ? "fr-FR" : "en-GB",
+                      { weekday: "short", month: "short", day: "numeric" },
+                    ) +
+                    " · " +
+                    booking.time
+                  : c("Choose date & time", "Choisir la date et l'heure")}
+              </strong>
+            </span>
+          </button>
           {booking.type === "transfer" && (
             <button
               type="button"
@@ -195,10 +204,12 @@ export default function BookingBar({ initial, mode, onSearch, light = false }: P
               </button>
             </div>
           </div>
-          <button className="ad-primary ad-search" type="submit">
-            {onSearch ? c("Update ride", "Actualiser") : c("See prices", "Voir les prix")}
-            <ArrowRight size={18} />
-          </button>
+          {!onSearch && (
+            <button className="ad-primary ad-search" type="submit">
+              {c("See prices", "Voir les prix")}
+              <ArrowRight size={18} />
+            </button>
+          )}
         </div>
         {booking.type === "transfer" && booking.hasReturn && (
           <div className="ad-return-fields">
@@ -231,12 +242,58 @@ export default function BookingBar({ initial, mode, onSearch, light = false }: P
             </span>
           </div>
         )}
+        {onSearch && (
+          <button className="ad-primary ad-search ad-full" type="submit">
+            {c("Update ride", "Actualiser")}
+            <ArrowRight size={18} />
+          </button>
+        )}
         {error && (
           <p role="alert" className="ad-form-error">
             {error}
           </p>
         )}
       </form>
+      <BookingDialog
+        open={calendarOpen}
+        onOpenChange={setCalendarOpen}
+        title={c("Pickup date and time", "Date et heure de départ")}
+        description={c(
+          "Choose your pickup. All times are local to Morocco.",
+          "Choisissez votre départ. Horaires locaux du Maroc.",
+        )}
+      >
+        <div className="ad-pickup-calendar-fields">
+          <label>
+            {c("Date", "Date")}
+            <input
+              aria-label={c("Pickup date", "Date de départ")}
+              type="date"
+              min={today}
+              value={booking.date}
+              onChange={(e) => change("date", e.target.value)}
+            />
+          </label>
+          <label>
+            {c("Time", "Heure")}
+            <input
+              aria-label={c("Pickup time", "Heure de départ")}
+              type="time"
+              value={booking.time}
+              onChange={(e) => change("time", e.target.value)}
+            />
+          </label>
+        </div>
+        <button
+          type="button"
+          className="ad-primary ad-full"
+          disabled={!booking.date || !booking.time}
+          onClick={() => setCalendarOpen(false)}
+        >
+          {c("Done", "Terminé")}
+          <Check size={17} />
+        </button>
+      </BookingDialog>
       <LocationPicker
         open={picker !== null}
         title={

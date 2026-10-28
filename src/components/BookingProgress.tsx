@@ -5,16 +5,16 @@ export default function BookingProgress({ step = 1 }: { step?: number }) {
   return (
     <nav className="ad-progress" aria-label={c("Booking progress", "Étapes de réservation")}>
       {[
-        c("Your ride", "Votre trajet"),
-        c("Your details", "Vos coordonnées"),
-        c("Send request", "Envoyer la demande"),
+        c("Vehicle", "Véhicule"),
+        c("Details", "Coordonnées"),
+        c("Review & send", "Vérifier et envoyer"),
       ].map((label, i) => (
         <span
           key={label}
           aria-current={step === i + 1 ? "step" : undefined}
           className={step >= i + 1 ? "ad-progress-active" : ""}
         >
-          <b>{step > i + 1 ? <Check size={12} /> : i + 1}</b>
+          <b>{step > i + 1 ? <Check size={12} /> : String(i + 1).padStart(2, "0")}</b>
           {label}
         </span>
       ))}

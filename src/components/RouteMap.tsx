@@ -9,9 +9,11 @@ interface Props {
   to: string;
   pickupTime: string;
   dropoffTime: string;
+  expanded?: boolean;
 }
-export default function RouteMap({ from, to, pickupTime }: Props) {
+export default function RouteMap({ from, to, pickupTime, expanded = false }: Props) {
   const host = useRef<HTMLDivElement>(null);
+  const mapRef = useRef<import("leaflet").Map | null>(null);
   const [status, setStatus] = useState<"loading" | "road" | "estimate" | "unavailable">("loading");
   const c = useCopy();
   const coordinate = (label: string) =>
@@ -34,6 +36,8 @@ export default function RouteMap({ from, to, pickupTime }: Props) {
         const start = coordinate(from)!;
         const end = coordinate(to)!;
         map = L.map(host.current, { scrollWheelZoom: false, zoomControl: true });
+        mapRef.current = map;
+        if (expanded) map.zoomControl.setPosition("topright");
         L.tileLayer(
           import.meta.env.VITE_MAP_TILE_URL || "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
           {
@@ -45,26 +49,64 @@ export default function RouteMap({ from, to, pickupTime }: Props) {
         ).addTo(map);
         const startPoint: [number, number] = [start.lat, start.lng],
           endPoint: [number, number] = [end.lat, end.lng];
-        L.circleMarker(startPoint, {
+        const pickupMarker = L.circleMarker(startPoint, {
           radius: 6,
           color: "#fff",
           weight: 3,
           fillColor: "#181c16",
           fillOpacity: 1,
         }).addTo(map);
-        L.circleMarker(endPoint, {
+        const dropoffMarker = L.circleMarker(endPoint, {
           radius: 6,
           color: "#fff",
           weight: 3,
           fillColor: "#e8ac2a",
           fillOpacity: 1,
         }).addTo(map);
+        if (expanded) {
+          const label = (title: string, place: string, time: string, gold: boolean) => {
+            const element = document.createElement("div");
+            element.className = "ad-map-station " + (gold ? "ad-map-station-gold" : "");
+            const text = document.createElement("span");
+            const small = document.createElement("small");
+            small.textContent = title;
+            const strong = document.createElement("strong");
+            strong.textContent = place;
+            text.append(small, strong);
+            element.append(text);
+            if (time) {
+              const badge = document.createElement("b");
+              badge.textContent = time;
+              element.append(badge);
+            }
+            return element;
+          };
+          pickupMarker
+            .bindTooltip(label(c("Pick up", "Départ"), from, pickupTime, false), {
+              permanent: true,
+              direction: "bottom",
+              offset: [0, 10],
+              className: "ad-map-station-tooltip",
+            })
+            .openTooltip();
+          dropoffMarker
+            .bindTooltip(label(c("Drop-off", "Arrivée"), to, "", true), {
+              permanent: true,
+              direction: "top",
+              offset: [0, -10],
+              className: "ad-map-station-tooltip",
+            })
+            .openTooltip();
+        }
         const fallback = L.polyline([startPoint, endPoint], {
           color: "#727c66",
           weight: 3,
           dashArray: "6 8",
         }).addTo(map);
-        map.fitBounds(L.latLngBounds([startPoint, endPoint]), { padding: [35, 40], maxZoom: 13 });
+        map.fitBounds(L.latLngBounds([startPoint, endPoint]), {
+          padding: expanded ? [80, 105] : [35, 40],
+          maxZoom: 13,
+        });
         setStatus("estimate");
         try {
           const response = await fetch(
@@ -90,7 +132,10 @@ export default function RouteMap({ from, to, pickupTime }: Props) {
           fallback.remove();
           L.polyline(route, { color: "#fff", weight: 7 }).addTo(map);
           L.polyline(route, { color: "#283421", weight: 4 }).addTo(map);
-          map.fitBounds(L.latLngBounds(route), { padding: [30, 35], maxZoom: 13 });
+          map.fitBounds(L.latLngBounds(route), {
+            padding: expanded ? [80, 105] : [30, 35],
+            maxZoom: 13,
+          });
           setStatus("road");
         } catch {
           /* The visible dashed estimate remains usable when routing is offline. */
@@ -105,9 +150,10 @@ export default function RouteMap({ from, to, pickupTime }: Props) {
       disposed = true;
       controller.abort();
       window.clearTimeout(timer);
+      mapRef.current = null;
       map?.remove();
     };
-  }, [from, to, known]);
+  }, [from, to, known, expanded, pickupTime, c]);
   if (!known)
     return (
       <div className="ad-map-placeholder">
@@ -124,7 +170,7 @@ export default function RouteMap({ from, to, pickupTime }: Props) {
       </div>
     );
   return (
-    <div className="ad-map">
+    <div className={"ad-map " + (expanded ? "ad-map-expanded" : "")}>
       <div
         ref={host}
         className="ad-map-canvas"
@@ -143,7 +189,27 @@ export default function RouteMap({ from, to, pickupTime }: Props) {
                 "Trajet approximatif · sans navigation en temps réel",
               )}
       </span>
-      <span className="ad-map-time">{pickupTime}</span>
+      {!expanded && <span className="ad-map-time">{pickupTime}</span>}
+      {expanded && (
+        <button
+          className="ad-map-recenter"
+          aria-label={c("Recenter route", "Recentrer le trajet")}
+          onClick={() => {
+            const start = coordinate(from),
+              end = coordinate(to);
+            if (start && end)
+              mapRef.current?.fitBounds(
+                [
+                  [start.lat, start.lng],
+                  [end.lat, end.lng],
+                ],
+                { padding: [80, 105], maxZoom: 13 },
+              );
+          }}
+        >
+          <MapPin size={16} />
+        </button>
+      )}
     </div>
   );
 }
