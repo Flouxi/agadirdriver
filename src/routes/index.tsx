@@ -5,6 +5,7 @@ import Header from "../components/Header";
 import Footer from "../components/Footer";
 import BookingBar from "../components/BookingBar";
 import JourneySteps from "../components/JourneySteps";
+import BookingFaqs from "../components/BookingFaqs";
 import { VEHICLES, DESTINATIONS, REVIEWS } from "../data";
 import { AIRPORTS, CITIES } from "../data/locations";
 import { BUSINESS } from "../data/seo";
@@ -127,20 +128,23 @@ function Home() {
         <main id="main-content" className="ad-shell ad-hero">
           <div className="ad-hero-copy">
             <h1>
-              {c("Your Reliable Private", "Votre chauffeur privé")}
+              {c("Private airport transfers", "Transferts aéroport privés")}
               <br />
-              {c("Airport Transfers in Morocco", "pour vos trajets au Maroc")}
+              {c("in Agadir & across Morocco", "à Agadir et partout au Maroc")}
             </h1>
             <p>
-              {c("Book your ride anywhere in Morocco", "Réservez votre trajet partout au Maroc")}
+              {c(
+                "Choose your ride. Confirm with our local team on WhatsApp.",
+                "Choisissez votre trajet. Confirmez avec notre équipe sur WhatsApp.",
+              )}
             </p>
           </div>
           <BookingBar key={formKey} initial={initial} mode={mode} />
           <div className="ad-hero-proof">
             <span>
               {c(
-                "Across Morocco · Private vehicles · Clear pricing",
-                "Tout le Maroc · Véhicules privés · Prix transparents",
+                "Price per vehicle · No payment online · Booking confirmed by our team",
+                "Prix par véhicule · Aucun paiement en ligne · Réservation confirmée par notre équipe",
               )}
             </span>
             <a href="#reviews">
@@ -384,7 +388,8 @@ function Home() {
           />
         </div>
       </section>
-      <section className="ad-home-contact" id="help">
+      <BookingFaqs />
+      <section className="ad-home-contact">
         <div className="ad-shell">
           <div>
             <h2>{c("Your next journey starts here.", "Votre prochain voyage commence ici.")}</h2>

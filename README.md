@@ -26,9 +26,15 @@ node tests/production-smoke.mjs
 
 The responsive booking form carries the route, Morocco-local pickup time, group size, hourly duration, return schedule and selected vehicle through to the request page. Vehicles are filtered by passenger capacity. Prices are recalculated from the tariff catalog, never accepted from a URL price.
 
-The final page prepares a WhatsApp request to the existing Agadir Driver business number. The passenger reviews it, opens WhatsApp and sends it. The team confirms availability, the final fare and payment arrangements directly.
+The final page prepares a request to the existing Agadir Driver business number or support email. A name is required; email, pickup phone, flight number and special requests are optional. The passenger reviews the request, opens WhatsApp or their email app and sends it. The team confirms availability, the final fare and payment arrangements directly.
 
 There is currently no booking database, email delivery or online payment integration. The interface does not collect card details or claim a booking has been saved, paid or confirmed.
+
+## Conversion measurement
+
+The interface emits `booking_search`, `request_prepared`, `whatsapp_outbound_click` and `email_outbound_click`. Each event contains only its name and `service` (`transfer` or `hourly`). Events dispatch as `agadir:conversion` browser events and enter an existing `window.dataLayer` if one is present. No analytics provider, script, cookie or backend collector is installed by this change. The hooks are instrumentation readiness, not proof that analytics is receiving them.
+
+Do not count a prepared request or an outbound click as a received lead, completed booking or payment. Reconcile received enquiries and confirmed bookings with the team's actual records. See `docs/conversion-review.md` for the observed baseline, changes, test evidence and measurement plan.
 
 ## Content and configuration
 

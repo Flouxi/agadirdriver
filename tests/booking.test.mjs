@@ -12,6 +12,9 @@ const sources = [
   "src/lib/pricing.ts",
   "src/data/locations.ts",
   "src/data/tariffs.ts",
+  "src/lib/location-search.ts",
+  "src/lib/enquiry.ts",
+  "src/lib/conversion.ts",
 ];
 for (const source of sources) {
   const destination = join(cache, source.replace(/\.ts$/, ".mjs"));
@@ -119,4 +122,82 @@ test("airport pickup coordinates stay at Al Massira rather than the city", () =>
   assert.ok(airport);
   assert.ok(airport.lat > 30.31 && airport.lat < 30.34);
   assert.ok(airport.lng > -9.44 && airport.lng < -9.4);
+});
+
+const { matchesLocation } = await import(
+  pathToFileURL(join(cache, "src/lib/location-search.mjs")).href
+);
+const { AIRPORTS, ALL_LOCATIONS } = await import(
+  pathToFileURL(join(cache, "src/data/locations.mjs")).href
+);
+const { validateEnquiryContact, enquiryEmailHref } = await import(
+  pathToFileURL(join(cache, "src/lib/enquiry.mjs")).href
+);
+const { trackBookingEvent } = await import(
+  pathToFileURL(join(cache, "src/lib/conversion.mjs")).href
+);
+
+test("English airport searches, IATA codes and reordered names match canonical locations", () => {
+  for (const query of [
+    "Agadir airport",
+    "airport Agadir",
+    "AGA",
+    "Al Massira Agadir",
+    "aeroport agadir",
+  ]) {
+    assert.ok(matchesLocation(AIRPORTS[0], query), query);
+  }
+  assert.ok(matchesLocation(AIRPORTS[1], "Marrakesh airport"));
+  assert.ok(matchesLocation(AIRPORTS[5], "Tangier airport"));
+  assert.deepEqual(
+    ALL_LOCATIONS.filter((place) => matchesLocation(place, "AGA")).map((place) => place.id),
+    ["aga"],
+  );
+  assert.equal(matchesLocation(AIRPORTS[0], "Marrakech airport"), false);
+  const hotel = ALL_LOCATIONS.find((place) => place.label === "Riu Palace Tikida Taghazout");
+  assert.ok(matchesLocation(hotel, "Taghazout Tikida Palace"));
+});
+
+test("WhatsApp enquiries need a name but not duplicate contact details", () => {
+  const contact = { name: "QA Traveller", email: "", phone: "" };
+  assert.equal(validateEnquiryContact(contact), null);
+  assert.equal(validateEnquiryContact({ ...contact, name: " " }), "name");
+  assert.equal(validateEnquiryContact({ ...contact, email: "not-an-email" }), "email");
+  assert.equal(validateEnquiryContact({ ...contact, email: " qa@example.com " }), null);
+  assert.equal(validateEnquiryContact({ ...contact, phone: "call me tomorrow" }), "phone");
+  assert.equal(validateEnquiryContact({ ...contact, phone: "+44 7700 900123" }), null);
+  assert.equal(validateEnquiryContact({ ...contact, phone: "123" }), "phone");
+});
+
+test("email fallback keeps the complete journey and encodes special characters", () => {
+  const message =
+    "Départ: Aéroport Agadir\nNotes: 2 bags & surfboard + child seat?\nReturn: 2030-11-05 15:00";
+  const email = new URL(enquiryEmailHref(message));
+  assert.equal(email.protocol, "mailto:");
+  assert.equal(email.pathname, "support@agadirdriver.com");
+  assert.equal(email.searchParams.get("body"), message);
+  assert.equal(email.searchParams.get("subject"), "Agadir Driver — Booking request");
+});
+
+test("conversion hooks send only event and service and never block the journey", () => {
+  trackBookingEvent("booking_search", "transfer"); // Server rendering has no window.
+  const events = [];
+  const original = globalThis.window;
+  globalThis.window = { dataLayer: events, dispatchEvent: (event) => events.push(event.detail) };
+  try {
+    trackBookingEvent("whatsapp_outbound_click", "transfer");
+    assert.deepEqual(events, [
+      { event: "whatsapp_outbound_click", service: "transfer" },
+      { event: "whatsapp_outbound_click", service: "transfer" },
+    ]);
+    globalThis.window.dataLayer = {
+      push() {
+        throw new Error("Analytics unavailable");
+      },
+    };
+    assert.doesNotThrow(() => trackBookingEvent("request_prepared", "hourly"));
+  } finally {
+    if (original === undefined) delete globalThis.window;
+    else globalThis.window = original;
+  }
 });

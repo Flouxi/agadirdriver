@@ -2,6 +2,7 @@ import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { ArrowLeft, MapPin, Plane, Building2, Hotel, Search, X, ArrowRight } from "lucide-react";
 import { ALL_LOCATIONS, type LocationCategory } from "../data/locations";
 import { useCopy } from "../lib/copy";
+import { matchesLocation, normalizeLocation as normalize } from "../lib/location-search";
 interface Props {
   open: boolean;
   onClose: () => void;
@@ -11,11 +12,6 @@ interface Props {
   context?: string;
   onBack?: () => void;
 }
-const normalize = (s: string) =>
-  s
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase();
 const suggestions = [
   "Aéroport Agadir Al Massira (AGA)",
   "Agadir Centre-Ville",
@@ -89,7 +85,7 @@ export default function LocationPicker({
           place.id !== "h-hotel-not-listed" &&
           normalize(place.label) !== normalize(exclude ?? "") &&
           (category === "all" || place.category === category) &&
-          normalize(place.label + " " + (place.sublabel ?? "")).includes(normalize(query.trim())),
+          matchesLocation(place, query),
       ).sort((a, b) => {
         if (query.trim())
           return (
@@ -114,7 +110,14 @@ export default function LocationPicker({
   }));
   if (
     query.trim().length >= 5 &&
-    !results.some((place) => normalize(place.label) === normalize(query.trim())) &&
+    !results.some(
+      (place) =>
+        normalize(place.label) === normalize(query.trim()) ||
+        (place.category === "airport" &&
+          (normalize(query).includes("airport") ||
+            normalize(query).includes("aeroport") ||
+            normalize(query) === place.id)),
+    ) &&
     normalize(query.trim()) !== normalize(exclude ?? "")
   )
     choices.push({

@@ -12,6 +12,8 @@ import { calculateRoutePrice } from "../lib/pricing";
 import { useCopy } from "../lib/copy";
 import { useVehicleText } from "../lib/vehicle-copy";
 import { useI18n } from "../lib/i18n";
+import { validateEnquiryContact, enquiryEmailHref } from "../lib/enquiry";
+import { trackBookingEvent } from "../lib/conversion";
 
 export const Route = createFileRoute("/checkout")({
   validateSearch: (search) => bookingSearchSchema.parse(search),
@@ -48,6 +50,7 @@ function Checkout() {
   const [form, setForm] = usePassengerDraft();
   const [errors, setErrors] = useState<Partial<Record<"name" | "email" | "phone", string>>>({});
   const pageHeading = useRef<HTMLHeadingElement>(null);
+  const optionalDetails = useRef<HTMLDetailsElement>(null);
   const [message, setMessage] = useState("");
   const money = pricing
     ? new Intl.NumberFormat(lang === "FR" ? "fr-FR" : "en-GB", {
@@ -64,30 +67,28 @@ function Checkout() {
   const submit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!vehicle || !pricing || invalid) return;
+    const contactError = validateEnquiryContact(form);
     const nextErrors: Partial<Record<"name" | "email" | "phone", string>> = {};
-    if (form.name.trim().length < 2)
-      nextErrors.name = c(
-        "Enter the passenger's full name.",
-        "Indiquez le nom complet du passager.",
-      );
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim()))
-      nextErrors.email = c(
-        "Enter a valid email, for example name@example.com.",
-        "Indiquez un e-mail valide, par exemple nom@exemple.com.",
-      );
-    if (form.phone.replace(/\D/g, "").length < 8)
-      nextErrors.phone = c(
-        "Add your phone number with its country code, for example +212.",
-        "Indiquez votre téléphone avec l'indicatif, par exemple +212.",
-      );
+    if (contactError) {
+      nextErrors[contactError] =
+        contactError === "name"
+          ? c("Enter the passenger's full name.", "Indiquez le nom complet du passager.")
+          : c(
+              "Check this optional contact detail, or leave it blank.",
+              "Vérifiez cette coordonnée facultative, ou laissez le champ vide.",
+            );
+    }
     setErrors(nextErrors);
-    const firstError = (Object.keys(nextErrors) as ("name" | "email" | "phone")[])[0];
-    if (firstError) {
+    if (contactError) {
+      if (contactError !== "name" && optionalDetails.current) optionalDetails.current.open = true;
       (
-        event.currentTarget.elements.namedItem("passenger-" + firstError) as HTMLInputElement | null
+        event.currentTarget.elements.namedItem(
+          "passenger-" + contactError,
+        ) as HTMLInputElement | null
       )?.focus();
       return;
     }
+    trackBookingEvent("request_prepared", booking.type);
     setMessage(
       [
         "AGADIR DRIVER — " + c("Booking request", "Demande de réservation"),
@@ -119,8 +120,8 @@ function Checkout() {
               "merci de confirmer le prix final et la disponibilité.",
             ),
         c("Name: ", "Nom : ") + form.name.trim(),
-        c("Email: ", "E-mail : ") + form.email.trim(),
-        c("Phone: ", "Téléphone : ") + form.phone.trim(),
+        ...(form.email.trim() ? [c("Email: ", "E-mail : ") + form.email.trim()] : []),
+        ...(form.phone.trim() ? [c("Phone: ", "Téléphone : ") + form.phone.trim()] : []),
         ...(form.flight.trim() ? [c("Flight: ", "Vol : ") + form.flight.trim()] : []),
         ...(form.notes.trim() ? [c("Notes: ", "Précisions : ") + form.notes.trim()] : []),
       ].join("\n"),
@@ -141,12 +142,12 @@ function Checkout() {
         <h1 ref={pageHeading} tabIndex={-1}>
           {message
             ? c("Review your request", "Vérifiez votre demande")
-            : c("A few details. Then you're ready.", "Quelques détails avant de partir.")}
+            : c("Request your ride. No payment now.", "Demandez votre trajet. Aucun paiement ici.")}
         </h1>
         <p>
           {c(
-            "Send your request to our local team for confirmation.",
-            "Envoyez votre demande à notre équipe locale pour confirmation.",
+            "Review your journey, then send it on WhatsApp or by email. Our team confirms the final fare and availability.",
+            "Vérifiez votre trajet, puis envoyez-le par WhatsApp ou e-mail. Notre équipe confirme le tarif final et la disponibilité.",
           )}
         </p>
         {(!vehicle || invalid) && (
@@ -175,59 +176,33 @@ function Checkout() {
               <h2>{c("Lead passenger", "Passager principal")}</h2>
               <p>
                 {c(
-                  "Use the details where we can reach you about this journey.",
-                  "Indiquez les coordonnées auxquelles vous joindre pour ce trajet.",
+                  "We can reply in the WhatsApp conversation you start. Additional contact details are optional.",
+                  "Nous pouvons vous répondre dans la conversation WhatsApp que vous ouvrez. Les autres coordonnées sont facultatives.",
                 )}
               </p>
               <div className="ad-form-grid">
-                {(
-                  [
-                    {
-                      key: "name",
-                      label: c("Full name", "Nom complet"),
-                      type: "text",
-                      autoComplete: "name",
-                    },
-                    {
-                      key: "email",
-                      label: c("Email", "E-mail"),
-                      type: "email",
-                      autoComplete: "email",
-                    },
-                    {
-                      key: "phone",
-                      label: c("Phone with country code", "Téléphone avec indicatif"),
-                      type: "tel",
-                      autoComplete: "tel",
-                    },
-                  ] as const
-                ).map((field) => (
-                  <label key={field.key}>
-                    {field.label}
-                    <input
-                      id={"passenger-" + field.key}
-                      name={"passenger-" + field.key}
-                      aria-invalid={!!errors[field.key]}
-                      aria-describedby={
-                        errors[field.key] ? "passenger-error-" + field.key : undefined
-                      }
-                      type={field.type}
-                      autoComplete={field.autoComplete}
-                      required
-                      maxLength={150}
-                      value={form[field.key]}
-                      onChange={(e) => update(field.key, e.target.value)}
-                      placeholder={field.key === "phone" ? "+212 …" : undefined}
-                    />
-                    {errors[field.key] && (
-                      <span className="ad-field-error" id={"passenger-error-" + field.key}>
-                        {errors[field.key]}
-                      </span>
-                    )}
-                  </label>
-                ))}
                 <label>
-                  {c("Flight number (for airport pickups)", "Numéro de vol (départs aéroport)")}
+                  {c("Full name", "Nom complet")}
+                  <input
+                    id="passenger-name"
+                    name="passenger-name"
+                    type="text"
+                    autoComplete="name"
+                    required
+                    maxLength={150}
+                    value={form.name}
+                    onChange={(e) => update("name", e.target.value)}
+                    aria-invalid={!!errors.name}
+                    aria-describedby={errors.name ? "passenger-error-name" : undefined}
+                  />
+                  {errors.name && (
+                    <span className="ad-field-error" id="passenger-error-name">
+                      {errors.name}
+                    </span>
+                  )}
+                </label>
+                <label>
+                  {c("Flight number (optional)", "Numéro de vol (facultatif)")}
                   <input
                     maxLength={30}
                     value={form.flight}
@@ -235,19 +210,71 @@ function Checkout() {
                     placeholder="FR 1234"
                   />
                 </label>
-                <label className="ad-form-span">
-                  {c(
-                    "Luggage, child seats, exact address or other requests",
-                    "Bagages, sièges enfants, adresse exacte ou autres demandes",
-                  )}
-                  <textarea
-                    maxLength={1000}
-                    rows={4}
-                    value={form.notes}
-                    onChange={(e) => update("notes", e.target.value)}
-                  />
-                </label>
               </div>
+              <details className="ad-contact-options" ref={optionalDetails}>
+                <summary>
+                  {c(
+                    "Add contact details or special requests (optional)",
+                    "Ajouter des coordonnées ou demandes particulières (facultatif)",
+                  )}
+                </summary>
+                <div className="ad-form-grid">
+                  {(
+                    [
+                      {
+                        key: "email",
+                        label: c("Email (optional)", "E-mail (facultatif)"),
+                        type: "email",
+                        autoComplete: "email",
+                      },
+                      {
+                        key: "phone",
+                        label: c(
+                          "Phone for pickup (optional)",
+                          "Téléphone pour le trajet (facultatif)",
+                        ),
+                        type: "tel",
+                        autoComplete: "tel",
+                      },
+                    ] as const
+                  ).map((field) => (
+                    <label key={field.key}>
+                      {field.label}
+                      <input
+                        id={"passenger-" + field.key}
+                        name={"passenger-" + field.key}
+                        aria-invalid={!!errors[field.key]}
+                        aria-describedby={
+                          errors[field.key] ? "passenger-error-" + field.key : undefined
+                        }
+                        type={field.type}
+                        autoComplete={field.autoComplete}
+                        maxLength={150}
+                        value={form[field.key]}
+                        onChange={(e) => update(field.key, e.target.value)}
+                        placeholder={field.key === "phone" ? "+212 …" : undefined}
+                      />
+                      {errors[field.key] && (
+                        <span className="ad-field-error" id={"passenger-error-" + field.key}>
+                          {errors[field.key]}
+                        </span>
+                      )}
+                    </label>
+                  ))}
+                  <label className="ad-form-span">
+                    {c(
+                      "Luggage, child seats, exact address or other requests",
+                      "Bagages, sièges enfants, adresse exacte ou autres demandes",
+                    )}
+                    <textarea
+                      maxLength={1000}
+                      rows={4}
+                      value={form.notes}
+                      onChange={(e) => update("notes", e.target.value)}
+                    />
+                  </label>
+                </div>
+              </details>
               <div className="ad-inclusions">
                 <ShieldCheck size={21} />
                 <p>
@@ -279,14 +306,18 @@ function Checkout() {
                     <dt>{c("Lead passenger", "Passager principal")}</dt>
                     <dd>{form.name.trim()}</dd>
                   </div>
-                  <div>
-                    <dt>{c("Email", "E-mail")}</dt>
-                    <dd>{form.email.trim()}</dd>
-                  </div>
-                  <div>
-                    <dt>{c("Phone", "Téléphone")}</dt>
-                    <dd>{form.phone.trim()}</dd>
-                  </div>
+                  {form.email.trim() && (
+                    <div>
+                      <dt>{c("Email", "E-mail")}</dt>
+                      <dd>{form.email.trim()}</dd>
+                    </div>
+                  )}
+                  {form.phone.trim() && (
+                    <div>
+                      <dt>{c("Phone", "Téléphone")}</dt>
+                      <dd>{form.phone.trim()}</dd>
+                    </div>
+                  )}
                   {form.flight.trim() && (
                     <div>
                       <dt>{c("Flight", "Vol")}</dt>
@@ -315,22 +346,31 @@ function Checkout() {
                   href={BUSINESS.whatsapp + "?text=" + encodeURIComponent(message)}
                   target="_blank"
                   rel="noreferrer"
+                  onClick={() => trackBookingEvent("whatsapp_outbound_click", booking.type)}
                 >
                   <MessageCircle size={18} />
                   {c("Continue to WhatsApp", "Continuer sur WhatsApp")}
                 </a>
+                <a
+                  className="ad-secondary ad-full ad-email-alternative"
+                  href={enquiryEmailHref(message)}
+                  onClick={() => trackBookingEvent("email_outbound_click", booking.type)}
+                >
+                  {c("Send the same request by email", "Envoyer la même demande par e-mail")}
+                  <ArrowRight size={16} />
+                </a>
                 <p>
                   {c(
-                    "WhatsApp opens with your request. Tap Send there; our team will confirm availability and the final fare.",
-                    "WhatsApp s'ouvre avec votre demande. Appuyez sur Envoyer ; notre équipe confirmera la disponibilité et le tarif final.",
+                    "Your chosen app opens with your request. Press Send there to reach our team. Preparing this message does not confirm a booking.",
+                    "L'application choisie s'ouvre avec votre demande. Appuyez sur Envoyer pour joindre notre équipe. Préparer ce message ne confirme pas une réservation.",
                   )}
                 </p>
               </div>
             )}
             <p className="ad-fine-print">
               {c(
-                "Your contact and journey details are included in the message you choose to send to Agadir Driver on WhatsApp. Please do not include payment card details.",
-                "Vos coordonnées et les détails du trajet sont inclus dans le message que vous choisissez d'envoyer à Agadir Driver sur WhatsApp. N'incluez pas de données de carte bancaire.",
+                "Your journey and any contact details you add are included in the request you choose to send to Agadir Driver. Please do not include payment card details.",
+                "Votre trajet et les coordonnées ajoutées sont inclus dans la demande que vous choisissez d'envoyer à Agadir Driver. N'incluez pas de données de carte bancaire.",
               )}
             </p>
           </form>
