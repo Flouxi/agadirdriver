@@ -3320,7 +3320,7 @@ body {
     sans-serif;
 }
 .ad-booking-header .ad-progress > .ad-progress-active {
-  color: white;
+  color: white !important;
 }
 .ad-booking-header .ad-progress > [aria-current="step"]:after {
   content: "";
