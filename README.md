@@ -17,8 +17,9 @@ pnpm dev
 
 ```sh
 pnpm exec tsc --noEmit
-node --test tests/booking.test.mjs
+node --test tests/booking.test.mjs tests/routing.test.mjs
 pnpm build
+node tests/production-smoke.mjs
 ```
 
 ## Booking flow
@@ -44,3 +45,7 @@ Keep vehicle availability, passenger/luggage limits and tariff data up to date. 
 The TanStack Start application uses the existing Vercel/Nitro configuration. Review the branch preview and quality checks before merging into the production branch.
 
 The route map uses standard OpenStreetMap tiles by default. For a configured map service, set VITE_MAP_TILE_URL and VITE_MAP_TILE_ATTRIBUTION together. Keep attribution visible and preserve browser caching and referrer behavior.
+
+The first-party `GET /api/route?from=<catalog-id>&to=<catalog-id>` endpoint fetches driving geometry, distance and duration from OSRM. It accepts only distinct catalog places, validates upstream GeoJSON, deduplicates concurrent requests and caches successful routes for 30 minutes. Failed routes remain retryable. Driving times are approximate; custom addresses require team confirmation.
+
+The map preserves zoom and position when pickup time, language or vehicle changes. Mobile customers load the map only when they choose View route; editing and booking summaries open in focused dialogs.

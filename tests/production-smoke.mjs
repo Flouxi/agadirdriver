@@ -40,3 +40,11 @@ for (const [path, marker] of [
   );
   console.log("SSR OK", path.split("?")[0]);
 }
+
+// The first-party routing endpoint must be dispatched before the page renderer.
+const invalidRoute = await app.fetch(
+  new Request("https://agadirdriver.com/api/route?from=unknown&to=unknown"),
+);
+assert.equal(invalidRoute.status, 400);
+assert.match(invalidRoute.headers.get("content-type"), /application\/json/);
+console.log("Routing API OK");

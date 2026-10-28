@@ -33,3 +33,5 @@ dist-ssr
 
 # Temporary output from booking regression checks
 .quality-cache/
+
+.quality-routing-cache/

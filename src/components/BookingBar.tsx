@@ -142,27 +142,51 @@ export default function BookingBar({ initial, mode, onSearch, light = false }: P
               </span>
             </label>
           )}
-          <button
-            type="button"
-            className="ad-date-field ad-date-picker-trigger"
-            onClick={() => setCalendarOpen(true)}
-            aria-label={c("Pickup date and time", "Date et heure de départ")}
-          >
-            <CalendarDays size={18} />
-            <span>
-              <small>{c("Pickup date", "Date de départ")}</small>
-              <strong>
-                {booking.date
-                  ? new Date(booking.date + "T12:00:00").toLocaleDateString(
-                      lang === "FR" ? "fr-FR" : "en-GB",
-                      { weekday: "short", month: "short", day: "numeric" },
-                    ) +
-                    " · " +
-                    booking.time
-                  : c("Choose date & time", "Choisir la date et l'heure")}
-              </strong>
-            </span>
-          </button>
+          {onSearch ? (
+            <div className="ad-inline-pickup">
+              <label>
+                <span>{c("Pickup date", "Date de départ")}</span>
+                <input
+                  aria-label={c("Pickup date", "Date de départ")}
+                  type="date"
+                  min={today}
+                  value={booking.date}
+                  onChange={(event) => change("date", event.target.value)}
+                />
+              </label>
+              <label>
+                <span>{c("Time · Morocco", "Heure · Maroc")}</span>
+                <input
+                  aria-label={c("Pickup time", "Heure de départ")}
+                  type="time"
+                  value={booking.time}
+                  onChange={(event) => change("time", event.target.value)}
+                />
+              </label>
+            </div>
+          ) : (
+            <button
+              type="button"
+              className="ad-date-field ad-date-picker-trigger"
+              onClick={() => setCalendarOpen(true)}
+              aria-label={c("Pickup date and time", "Date et heure de départ")}
+            >
+              <CalendarDays size={18} />
+              <span>
+                <small>{c("Pickup date", "Date de départ")}</small>
+                <strong>
+                  {booking.date
+                    ? new Date(booking.date + "T12:00:00").toLocaleDateString(
+                        lang === "FR" ? "fr-FR" : "en-GB",
+                        { weekday: "short", month: "short", day: "numeric" },
+                      ) +
+                      " · " +
+                      booking.time
+                    : c("Choose date & time", "Choisir la date et l'heure")}
+                </strong>
+              </span>
+            </button>
+          )}
           {booking.type === "transfer" && (
             <button
               type="button"
@@ -301,9 +325,15 @@ export default function BookingBar({ initial, mode, onSearch, light = false }: P
             ? c("Pickup location", "Lieu de départ")
             : c("Destination", "Destination")
         }
+        exclude={picker === "from" ? booking.to : booking.from}
+        context={
+          picker === "to" && booking.from ? c("Pickup: ", "Départ : ") + booking.from : undefined
+        }
+        onBack={picker === "to" && booking.from ? () => setPicker("from") : undefined}
         onClose={() => setPicker(null)}
         onSelect={(value) => {
           if (picker) change(picker, value);
+          setPicker(picker === "from" && booking.type === "transfer" && !booking.to ? "to" : null);
         }}
       />
     </div>
