@@ -6,6 +6,7 @@ import Footer from "../components/Footer";
 import BookingBar from "../components/BookingBar";
 import JourneySteps from "../components/JourneySteps";
 import BookingFaqs from "../components/BookingFaqs";
+import { seoHead } from "../lib/seo-head";
 import { VEHICLES, DESTINATIONS, REVIEWS } from "../data";
 import { AIRPORTS, CITIES } from "../data/locations";
 import { BUSINESS } from "../data/seo";
@@ -18,26 +19,18 @@ import {
   INFO_SECTION_SECONDARY_IMAGE_URL,
 } from "../lib/brand-images";
 export const Route = createFileRoute("/")({
-  head: () => ({
-    meta: [
-      { title: "Agadir Airport Transfer & Private Driver | AgadirDriver.com" },
-      {
-        name: "description",
-        content:
-          "Private airport transfers, city rides and hourly chauffeurs in Agadir and across Morocco. Compare vehicles and request your ride with Agadir Driver.",
-      },
-      { property: "og:title", content: "Your private driver in Morocco | Agadir Driver" },
-      {
-        property: "og:image",
-        content: "https://agadirdriver.com/assets/agadir88/hero-desktop-v2.jpg",
-      },
-      { property: "og:url", content: "https://agadirdriver.com/" },
-    ],
-    links: [
-      { rel: "canonical", href: "https://agadirdriver.com/" },
-      { rel: "preload", as: "image", href: HOMEPAGE_HERO_IMAGE_URL },
-    ],
-  }),
+  head: () => {
+    const head = seoHead({
+      title: "Agadir Driver | Private Transfers Across Morocco",
+      description:
+        "Private airport transfers, city rides and hourly chauffeurs in Agadir and across Morocco. Compare vehicles and confirm your request with our local team.",
+      path: "/",
+    });
+    return {
+      ...head,
+      links: [...head.links, { rel: "preload", as: "image", href: HOMEPAGE_HERO_IMAGE_URL }],
+    };
+  },
   component: Home,
 });
 function Home() {

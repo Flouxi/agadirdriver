@@ -7,6 +7,9 @@ import Header from "./Header";
 import Footer from "./Footer";
 import BookingBar from "./BookingBar";
 import BookingFaqs from "./BookingFaqs";
+import RouteFareTable from "./RouteFareTable";
+import { SERVICE_DETAILS } from "../data/service-details";
+import { jsonLd } from "../lib/seo-head";
 
 export default function SeoLandingPage({
   page,
@@ -69,11 +72,54 @@ export default function SeoLandingPage({
       </a>
       <Header />
       <main id="main-content">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: jsonLd({
+              "@context": "https://schema.org",
+              "@graph": [
+                {
+                  "@type": "Service",
+                  "@id": BUSINESS.url + path + "#service",
+                  name: heading,
+                  description: intro,
+                  url: BUSINESS.url + path,
+                  provider: { "@id": BUSINESS.url + "/#business" },
+                  areaServed: destination || "Agadir",
+                },
+                {
+                  "@type": "WebPage",
+                  "@id": BUSINESS.url + path + "#webpage",
+                  url: BUSINESS.url + path,
+                  name: heading,
+                  description: intro,
+                  mainEntity: { "@id": BUSINESS.url + path + "#service" },
+                  breadcrumb: { "@id": BUSINESS.url + path + "#breadcrumb" },
+                },
+                {
+                  "@type": "BreadcrumbList",
+                  "@id": BUSINESS.url + path + "#breadcrumb",
+                  itemListElement: [
+                    {
+                      "@type": "ListItem",
+                      position: 1,
+                      name: "Agadir Driver",
+                      item: BUSINESS.url + "/",
+                    },
+                    { "@type": "ListItem", position: 2, name: heading, item: BUSINESS.url + path },
+                  ],
+                },
+              ],
+            }),
+          }}
+        />
         <section className="ad-service-hero">
           <div className="ad-shell">
-            <Link to="/" className="ad-back">
-              ← {c("All Agadir Driver services", "Tous les services Agadir Driver")}
-            </Link>
+            <nav className="ad-breadcrumbs" aria-label={c("Breadcrumb", "Fil d'Ariane")}>
+              <Link to="/">Agadir Driver</Link>
+              <span aria-hidden="true">/</span>
+              <span aria-current="page">{heading}</span>
+            </nav>
             <p className="ad-eyebrow">
               Agadir Driver ·{" "}
               {c("Private vehicles. Local team.", "Véhicules privés. Équipe locale.")}
@@ -94,6 +140,28 @@ export default function SeoLandingPage({
                 "Besoin d'aide pour votre trajet ? Contactez-nous sur WhatsApp",
               )}
             </a>
+          </div>
+        </section>
+        {!hourly && (
+          <RouteFareTable
+            city={city}
+            destination={
+              destination === "Taghazout"
+                ? "taghazout"
+                : destination === "Tamraght"
+                  ? "tamraght"
+                  : undefined
+            }
+          />
+        )}
+        <section className="ad-section ad-service-details">
+          <div className="ad-shell">
+            {SERVICE_DETAILS[path].map((section) => (
+              <section key={section.title[0]}>
+                <h2>{c(section.title[0], section.title[1])}</h2>
+                <p>{c(section.body[0], section.body[1])}</p>
+              </section>
+            ))}
           </div>
         </section>
         <section className="ad-section">

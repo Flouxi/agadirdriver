@@ -6050,3 +6050,98 @@ body {
     font-size: 16px;
   }
 }
+
+/* Readable service information reuses the established booking palette. */
+.ad-breadcrumbs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  font-size: 12px;
+  color: #ffffffb8;
+}
+.ad-breadcrumbs a {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.ad-service-details .ad-shell {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 40px;
+}
+.ad-service-details h2,
+.ad-seo-fares h2 {
+  font-size: 26px;
+  font-weight: 600;
+  line-height: 1.3;
+  margin-bottom: 16px;
+}
+.ad-service-details p,
+.ad-seo-fares p {
+  font-size: 14px;
+  line-height: 1.8;
+  color: var(--ad-muted);
+  max-width: 850px;
+}
+.ad-seo-fares {
+  background: var(--ad-soft);
+}
+.ad-seo-table-wrap {
+  max-width: 100%;
+  overflow-x: auto;
+  margin: 24px 0;
+}
+.ad-seo-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  text-align: left;
+}
+.ad-seo-table caption {
+  text-align: left;
+  font-size: 12px;
+  padding-bottom: 14px;
+  color: var(--ad-muted);
+}
+.ad-seo-table th,
+.ad-seo-table td {
+  padding: 16px 14px;
+  border-bottom: 1px solid var(--ad-line);
+  vertical-align: top;
+}
+.ad-seo-table thead th {
+  background: white;
+  font-weight: 600;
+}
+.ad-seo-table tbody th {
+  font-weight: 500;
+}
+.ad-guide-related {
+  display: grid;
+  gap: 14px;
+  margin-top: 40px;
+}
+.ad-guide-related h2 {
+  font-size: 24px;
+  font-weight: 600;
+}
+.ad-guide-related a {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  min-height: 32px;
+}
+@media (max-width: 699px) {
+  .ad-service-details .ad-shell {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+  .ad-seo-table {
+    font-size: 12px;
+  }
+  .ad-seo-table th,
+  .ad-seo-table td {
+    padding: 12px 8px;
+  }
+  .ad-seo-table-wrap {
+    margin-inline: 0;
+  }
+}
