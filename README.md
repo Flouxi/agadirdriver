@@ -55,3 +55,5 @@ The route map uses standard OpenStreetMap tiles by default. For a configured map
 The first-party `GET /api/route?from=<catalog-id>&to=<catalog-id>` endpoint fetches driving geometry, distance and duration from OSRM. It accepts only distinct catalog places, validates upstream GeoJSON, deduplicates concurrent requests and caches successful routes for 30 minutes. Failed routes remain retryable. Driving times are approximate; custom addresses require team confirmation.
 
 The map preserves zoom and position when pickup time, language or vehicle changes. Mobile customers load the map only when they choose View route; editing and booking summaries open in focused dialogs.
+
+The vehicle page uses the normal page scroll, with a sticky route and selected fare on desktop. Map addresses sit below the map rather than covering it. Passenger details stay only in the React provider while changing rides within the current page session; they are not persisted to browser storage or the server. Refreshing the page clears this draft. Validation identifies individual fields and review uses a separate, readable passenger summary before the WhatsApp handoff.

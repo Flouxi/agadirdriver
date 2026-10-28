@@ -4900,13 +4900,16 @@ body {
 /* A quieter map and a shorter, clearer booking flow. */
 .ad-clean-map {
   isolation: isolate;
-  background: #edf1ef !important;
+  display: flex;
+  flex-direction: column;
+  background: #eaf0ec !important;
 }
 .ad-clean-map .leaflet-container {
   background: #edf1ef;
 }
 .ad-clean-map .leaflet-tile-pane {
-  filter: grayscale(0.82) saturate(0.45) brightness(1.07) contrast(0.92);
+  filter: grayscale(1) brightness(1.06) contrast(0.82);
+  opacity: 0.62;
 }
 .ad-clean-map .leaflet-control-attribution {
   font:
@@ -4923,16 +4926,16 @@ body {
   z-index: 500;
   left: 16px;
   top: 16px;
-  right: 72px;
+  max-width: calc(100% - 88px);
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  gap: 5px;
+  gap: 4px;
   pointer-events: none;
-  background: #fffffff0;
-  padding: 12px 14px;
-  border-radius: 13px;
-  box-shadow: 0 3px 16px #2030240c;
+  background: #fffffff2;
+  padding: 11px 15px;
+  border: 1px solid #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px #20302408;
 }
 .ad-map-heading > span {
   color: #828b80;
@@ -4999,17 +5002,14 @@ body {
   color: #242b20;
 }
 .ad-map-journey-card {
-  position: absolute;
-  z-index: 500;
-  left: 16px;
-  right: 16px;
-  bottom: 28px;
-  background: #fffffff5;
-  border: 1px solid #e5eae0;
-  border-radius: 14px;
-  padding: 13px 14px;
-  box-shadow: 0 5px 24px #1a301a12;
-  backdrop-filter: blur(8px);
+  position: relative;
+  z-index: 2;
+  flex-shrink: 0;
+  background: #fff;
+  border: 0;
+  border-top: 1px solid #e8ece6;
+  border-radius: 0;
+  padding: 17px 19px;
 }
 .ad-map-journey-card > div {
   display: flex;
@@ -5089,9 +5089,9 @@ body {
   align-items: center;
   justify-content: center;
   gap: 15px;
-  padding: 35px 35px 170px;
+  padding: 28px;
   text-align: center;
-  color: #7b8976;
+  color: #66725e;
 }
 .ad-clean-map-empty strong {
   font:
@@ -5431,6 +5431,438 @@ body {
 @media (max-width: 359px) {
   .ad-inline-pickup {
     grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Booking workspace: one page scroll, with a quiet route and clear choices. */
+.ad-map-stage {
+  position: relative;
+  flex: 1;
+  min-height: 160px;
+  width: 100%;
+  isolation: isolate;
+  overflow: hidden;
+}
+.ad-clean-map .ad-map-journey-card {
+  left: auto;
+  right: auto;
+  bottom: auto;
+}
+.ad-map-stage .ad-map-heading {
+  right: auto;
+}
+.ad-map-journey-card small {
+  font-size: 10px;
+  color: #737c70;
+}
+.ad-map-journey-card strong {
+  color: #28302b;
+  font-size: 12px;
+  line-height: 1.5;
+}
+.ad-map-journey-card > p {
+  color: #727c6d;
+  font-size: 10px;
+  padding-top: 10px;
+}
+.ad-clean-map-controls button {
+  width: 40px;
+  height: 40px;
+}
+.ad-ride-heading {
+  margin-bottom: 24px;
+}
+.ad-ride-heading > span {
+  display: block;
+  font:
+    600 10px/1.5 Arial,
+    sans-serif;
+  letter-spacing: 0.14em;
+  color: #8c7750;
+  margin-bottom: 9px;
+}
+.ad-ride-heading h1 {
+  margin-bottom: 9px;
+  font-size: clamp(25px, 2.4vw, 33px);
+  line-height: 1.15;
+}
+.ad-ride-heading > p {
+  font:
+    13px/1.6 Arial,
+    sans-serif;
+  color: #768072;
+}
+.ad-book-vehicle {
+  background: #fff;
+  border-color: #e6e9e2;
+  padding: 20px 16px;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease;
+}
+.ad-book-vehicle:hover {
+  border-color: #bcbdaf;
+}
+.ad-book-vehicle-selected,
+.ad-book-vehicle-selected:hover {
+  border-color: #c99423;
+  background: #fffcf4;
+  box-shadow: 0 0 0 1px #c9942312;
+}
+.ad-vehicle-selection {
+  position: absolute;
+  right: 14px;
+  top: 14px;
+  width: 18px;
+  height: 18px;
+  border: 1.5px solid #d9ded3;
+  border-radius: 50%;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+.ad-book-vehicle-selected .ad-vehicle-selection {
+  background: #b3811a;
+  border-color: #b3811a;
+}
+.ad-book-vehicle-copy > h2 {
+  padding-right: 18px;
+  font-size: 20px;
+  line-height: 1.35;
+}
+.ad-book-vehicle-copy > p {
+  color: #737c70;
+  line-height: 1.5;
+}
+.ad-book-vehicle-badge {
+  background: #f1f3ed;
+  color: #5c6853;
+}
+.ad-book-vehicle-selected .ad-book-vehicle-badge {
+  background: #f4e8c8;
+  color: #87631d;
+}
+.ad-booking-side .ad-booking-total {
+  margin-top: 19px;
+  border-top: 0;
+  padding-top: 0;
+}
+.ad-booking-side .ad-booking-total > strong {
+  font-size: 32px;
+  letter-spacing: -0.04em;
+}
+.ad-booking-side .ad-booking-price-caption {
+  padding-bottom: 20px;
+  border-bottom: 1px solid #eceee6;
+  margin-bottom: 22px;
+}
+.ad-booking-benefits {
+  border-top: 1px solid #edf0e8;
+  padding-top: 15px;
+  margin-top: 15px;
+}
+.ad-booking-benefits > summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font:
+    12px/1.5 Arial,
+    sans-serif;
+  color: #68755f;
+  cursor: pointer;
+  list-style: none;
+}
+.ad-booking-benefits > summary::-webkit-details-marker {
+  display: none;
+}
+.ad-booking-benefits[open] > summary svg {
+  transform: rotate(180deg);
+}
+.ad-booking-benefits .ad-booking-included {
+  margin-top: 15px;
+}
+.ad-booking-benefits:not([open]) .ad-booking-included {
+  display: none;
+}
+@media (min-width: 1000px) {
+  .ad-booking-workspace {
+    background: #f8f9f6;
+    min-height: 100dvh;
+  }
+  .ad-booking-layout {
+    height: auto;
+    min-height: calc(100dvh - 74px);
+    align-items: start;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.28fr) minmax(260px, 0.82fr);
+    gap: 24px;
+    padding: 32px 32px 0;
+  }
+  .ad-booking-map {
+    position: sticky;
+    top: 24px;
+    height: min(720px, calc(100dvh - 138px));
+    min-height: 400px;
+    border: 1px solid #e6eae2;
+    border-radius: 19px;
+  }
+  .ad-booking-vehicle-scroll {
+    overflow: visible;
+    padding-right: 0;
+  }
+  .ad-book-vehicle {
+    min-height: 155px;
+    margin-bottom: 14px;
+  }
+  .ad-booking-side {
+    background: #fff;
+    position: sticky;
+    top: 24px;
+    max-height: none;
+    overflow: visible;
+    border-color: #e4e8de;
+    padding: 21px 19px;
+    margin-bottom: 28px;
+  }
+  .ad-booking-continue {
+    position: sticky;
+    bottom: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 150px;
+    gap: 16px;
+    align-items: center;
+    padding: 17px 0 20px;
+    margin-top: 0;
+    background: #f8f9f6f5;
+    backdrop-filter: blur(12px);
+    border-top: 1px solid #e2e7dc;
+    z-index: 20;
+  }
+  .ad-selected-trip-price {
+    display: block;
+    padding: 0;
+  }
+  .ad-selected-trip-price > span {
+    display: block;
+    font-size: 11px;
+    margin-bottom: 3px;
+  }
+  .ad-selected-trip-price > strong {
+    font-size: 25px;
+  }
+  .ad-booking-continue .ad-primary {
+    padding: 16px 12px;
+  }
+}
+@media (min-width: 700px) and (max-width: 999px) {
+  .ad-booking-continue {
+    position: sticky;
+    bottom: 0;
+    z-index: 20;
+    background: #fffffff5;
+    border-top: 1px solid #e6e9df;
+    padding: 14px 0;
+  }
+  .ad-booking-side {
+    overflow: visible;
+    max-height: none;
+  }
+}
+@media (max-width: 699px) {
+  .ad-booking-workspace {
+    background: #fafbf8;
+  }
+  .ad-booking-layout {
+    padding-top: 27px;
+  }
+  .ad-ride-heading {
+    margin-bottom: 21px;
+  }
+  .ad-ride-heading h1 {
+    font-size: 29px;
+    margin-bottom: 9px;
+  }
+  .ad-ride-heading > p {
+    font-size: 12px;
+  }
+  .ad-book-vehicle {
+    min-height: 163px;
+    padding: 20px 13px;
+    margin-bottom: 13px;
+    border-radius: 15px;
+  }
+  .ad-book-vehicle-copy > h2 {
+    font-size: 18px;
+    padding-right: 16px;
+  }
+  .ad-book-vehicle-image {
+    width: 78px;
+  }
+  .ad-vehicle-selection {
+    width: 16px;
+    height: 16px;
+    top: 12px;
+    right: 12px;
+  }
+  .ad-booking-continue {
+    padding-top: 13px;
+    padding-bottom: calc(13px + env(safe-area-inset-bottom));
+  }
+  .ad-map-stage .ad-map-heading {
+    max-width: calc(100% - 84px);
+    right: auto;
+  }
+  .ad-clean-map .ad-map-journey-card {
+    padding: 15px;
+  }
+  .ad-clean-map-controls button {
+    width: 44px;
+    height: 44px;
+  }
+  .ad-route-dialog-map {
+    height: 67dvh;
+    min-height: 380px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ad-book-vehicle {
+    transition: none;
+  }
+}
+
+.ad-field-error {
+  display: block;
+  margin-top: 8px;
+  font:
+    12px/1.5 Arial,
+    sans-serif;
+  color: #a23728;
+}
+.ad-details-card input[aria-invalid="true"] {
+  border-color: #b34c3b;
+  background: #fffaf7;
+}
+.ad-edit-passenger {
+  border: 0;
+  background: transparent;
+  padding: 4px 0;
+  margin: 0 0 16px;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  font:
+    12px/1.5 Arial,
+    sans-serif;
+  color: #657553;
+  cursor: pointer;
+}
+
+.ad-booking-side-meta,
+.ad-booking-route > div > p,
+.ad-booking-route-estimate,
+.ad-booking-price-caption,
+.ad-booking-contact {
+  font-size: 12px;
+}
+.ad-booking-price-details > summary {
+  font-size: 12px;
+}
+.ad-booking-payment-note {
+  font-size: 11px;
+  line-height: 1.6;
+}
+@media (min-width: 1200px) {
+  .ad-book-vehicle {
+    grid-template-columns: 104px minmax(0, 1fr) auto;
+  }
+  .ad-book-vehicle-image {
+    width: 104px;
+  }
+}
+
+.ad-passenger-review {
+  margin: 24px 0 20px;
+  display: grid;
+  gap: 0;
+}
+.ad-passenger-review > div {
+  display: grid;
+  grid-template-columns: 135px minmax(0, 1fr);
+  gap: 16px;
+  padding: 15px 0;
+  border-bottom: 1px solid #e1e7d9;
+}
+.ad-passenger-review dt {
+  font:
+    12px/1.6 Arial,
+    sans-serif;
+  color: #75816c;
+}
+.ad-passenger-review dd {
+  margin: 0;
+  font:
+    500 14px/1.6 Arial,
+    sans-serif;
+  color: #303c29;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+@media (max-width: 699px) {
+  .ad-passenger-review > div {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 4px;
+  }
+  .ad-checkout-main:has(.ad-request-review) .ad-checkout-grid > aside {
+    order: -1;
+  }
+}
+
+.ad-morocco-time {
+  display: block;
+  margin-top: 5px;
+  font:
+    11px/1.6 Arial,
+    sans-serif;
+  color: #7b8473;
+}
+
+.ad-checkout-main h1 {
+  scroll-margin-top: 24px;
+}
+@media (max-width: 699px) {
+  .ad-details-card input,
+  .ad-details-card textarea {
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 699px) {
+  .ad-checkout-main:not(:has(.ad-request-review)) .ad-checkout-grid > aside {
+    grid-row: auto;
+    order: 0;
+  }
+  .ad-checkout-main:has(.ad-request-review) .ad-checkout-grid > aside {
+    grid-row: 1;
+  }
+}
+
+.ad-tablet-route {
+  display: none;
+}
+@media (min-width: 700px) and (max-width: 999px) {
+  .ad-tablet-route {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    margin-top: 14px;
+    padding: 9px 12px;
+    border: 1px solid #e1e6d9;
+    border-radius: 8px;
+    background: #f7f9f3;
+    color: #62714f;
+    font:
+      12px Arial,
+      sans-serif;
   }
 }
 

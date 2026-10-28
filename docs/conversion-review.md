@@ -54,6 +54,8 @@ Measure genuine business outcomes using the team's actual received messages and 
 
 ## Checks
 
+Publication was explicitly approved by the owner on 28 October 2026. Before publishing, the branch was combined with the newer booking-workspace update from main: retained passenger drafts, inline field errors, separate passenger review, route maps and current booking styles are preserved alongside the conversion fixes. Integration checks are rerun on the combined version.
+
 - TypeScript type check passed.
 - 17 booking, tariff, route and conversion regression checks passed.
 - Production build passed; bundled server rendered homepage, reservation and checkout and handled the routing API smoke check.

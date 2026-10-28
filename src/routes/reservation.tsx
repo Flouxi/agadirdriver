@@ -154,6 +154,16 @@ function Reservation() {
           {booking.pax} {c("Passengers", "Passagers")}
         </span>
       </p>
+      <div className="ad-booking-total">
+        <span>{c("Total", "Total")}</span>
+        <strong>{total}</strong>
+        {!invalid && !selected?.pricing.quoteRequired && <small>EUR</small>}
+      </div>
+      <p className="ad-booking-price-caption">
+        {booking.hasReturn
+          ? c("Both journeys · Price per vehicle", "Aller-retour · Prix par véhicule")
+          : c("Entire group · Price per vehicle", "Tout le groupe · Prix par véhicule")}
+      </p>
       <div className="ad-booking-route">
         <div>
           <span className="ad-route-square" />
@@ -194,16 +204,6 @@ function Reservation() {
           {booking.returnDate} · {booking.returnTime}
         </p>
       )}
-      <div className="ad-booking-total">
-        <span>{c("Total", "Total")}</span>
-        <strong>{total}</strong>
-        {!invalid && !selected?.pricing.quoteRequired && <small>EUR</small>}
-      </div>
-      <p className="ad-booking-price-caption">
-        {booking.hasReturn
-          ? c("Both journeys · Price per vehicle", "Aller-retour · Prix par véhicule")
-          : c("Entire group · Price per vehicle", "Tout le groupe · Prix par véhicule")}
-      </p>
       <details className="ad-booking-price-details">
         <summary>
           {c("Price details", "Détail du prix")}
@@ -233,24 +233,30 @@ function Reservation() {
         <ShieldCheck size={18} />
         {c("Confirmed personally by our team", "Confirmé par notre équipe")}
       </div>
-      <div className="ad-booking-included">
-        <span>
-          <Check size={13} />
-          {c("Door-to-door service", "Porte à porte")}
-        </span>
-        <span>
-          <Check size={13} />
-          {c("Meet & greet", "Accueil à l'arrivée")}
-        </span>
-        <span>
-          <Plane size={13} />
-          {c("Flight tracking", "Suivi du vol")}
-        </span>
-        <span>
-          <Users size={13} />
-          {c("Local drivers", "Chauffeurs locaux")}
-        </span>
-      </div>
+      <details className="ad-booking-benefits">
+        <summary>
+          {c("Included with your ride", "Inclus dans votre trajet")}
+          <ChevronDown size={14} />
+        </summary>
+        <div className="ad-booking-included">
+          <span>
+            <Check size={13} />
+            {c("Door-to-door service", "Porte à porte")}
+          </span>
+          <span>
+            <Check size={13} />
+            {c("Meet & greet", "Accueil à l'arrivée")}
+          </span>
+          <span>
+            <Plane size={13} />
+            {c("Flight tracking", "Suivi du vol")}
+          </span>
+          <span>
+            <Users size={13} />
+            {c("Local drivers", "Chauffeurs locaux")}
+          </span>
+        </div>
+      </details>
       <a className="ad-booking-contact" href={BUSINESS.whatsapp} target="_blank" rel="noreferrer">
         {c("Questions? We're here to help.", "Une question ? Nous sommes là.")}
         <ArrowRight size={14} />
@@ -301,7 +307,22 @@ function Reservation() {
             ))}
         </section>
         <section className="ad-booking-vehicles" aria-labelledby="vehicle-heading">
-          <h1 id="vehicle-heading">{c("Choose your vehicle", "Choisissez votre véhicule")}</h1>
+          <div className="ad-ride-heading">
+            <span>{c("PRIVATE TRAVEL · MOROCCO", "VOYAGES PRIVÉS · MAROC")}</span>
+            <h1 id="vehicle-heading">{c("Choose your ride", "Choisissez votre véhicule")}</h1>
+            <p>
+              {c(
+                "A private vehicle for your whole group.",
+                "Un véhicule privé pour tout votre groupe.",
+              )}
+            </p>
+            {booking.type === "transfer" && booking.from && booking.to && (
+              <button type="button" className="ad-tablet-route" onClick={() => setMapOpen(true)}>
+                <MapPin size={14} />
+                {c("View route", "Voir le trajet")}
+              </button>
+            )}
+          </div>
           <div className="ad-mobile-journey">
             <button
               className="ad-booking-mobile-trip"
@@ -388,6 +409,9 @@ function Reservation() {
                       {c("Select", "Choisir")} {vt(vehicle.name)}
                     </span>
                   </label>
+                  <span className="ad-vehicle-selection" aria-hidden="true">
+                    {selected?.vehicle.id === vehicle.id && <Check size={12} strokeWidth={3} />}
+                  </span>
                   <img className="ad-book-vehicle-image" src={vehicle.image} alt="" />
                   <div className="ad-book-vehicle-copy">
                     <h2>
