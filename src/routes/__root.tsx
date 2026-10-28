@@ -89,6 +89,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           "Book an Agadir airport transfer or private driver to Agadir, Taghazout, Tamraght, and nearby destinations via WhatsApp.",
       },
       { name: "author", content: "Agadir Driver" },
+      {
+        name: "google-site-verification",
+        content: "-iPyX_tLSHAjqGkXrmGdf63_BugtT9VLvDwFI0xilXQ",
+      },
       { property: "og:site_name", content: "Agadir Driver" },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
