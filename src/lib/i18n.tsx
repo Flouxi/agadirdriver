@@ -207,20 +207,40 @@ const I18nContext = createContext<I18nValue | null>(null);
 
 const STORAGE_KEY = "agadir-driver-lang";
 
-export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [lang, setLangState] = useState<Lang>("EN");
+export function LanguageProvider({
+  children,
+  routeLanguage,
+}: {
+  children: ReactNode;
+  routeLanguage?: "EN" | "FR";
+}) {
+  const [storedLang, setLangState] = useState<Lang>(routeLanguage ?? "EN");
+  const lang = routeLanguage ?? storedLang;
 
   useEffect(() => {
     try {
       const stored = window.localStorage.getItem(STORAGE_KEY) as Lang | null;
       if (stored === "FR" || stored === "EN") {
         setLangState(stored);
-        document.documentElement.lang = stored.toLowerCase();
       }
     } catch {
       /* Storage can be unavailable in private browsing. */
     }
   }, []);
+
+  useEffect(() => {
+    if (!routeLanguage) return;
+    setLangState(routeLanguage);
+    try {
+      window.localStorage.setItem(STORAGE_KEY, routeLanguage);
+    } catch {
+      /* Language-specific URLs still work when storage is unavailable. */
+    }
+  }, [routeLanguage]);
+
+  useEffect(() => {
+    document.documentElement.lang = lang.toLowerCase();
+  }, [lang]);
 
   const setLang = useCallback((next: Lang) => {
     setLangState(next);
@@ -229,7 +249,6 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
     } catch {
       /* ignore */
     }
-    document.documentElement.lang = next.toLowerCase();
   }, []);
 
   const t = useCallback((key: string) => DICTS[lang][key] ?? DICTS.FR[key] ?? key, [lang]);

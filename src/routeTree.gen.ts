@@ -20,6 +20,8 @@ import { Route as PrivateDriverAgadirRouteImport } from './routes/private-driver
 import { Route as ReservationRouteImport } from './routes/reservation'
 import { Route as BlogIndexRouteImport } from './routes/blog/index'
 import { Route as BlogSlugRouteImport } from './routes/blog/$slug'
+import { Route as FrSlugRouteImport } from './routes/fr/$slug'
+import { Route as FrGuidesSlugRouteImport } from './routes/fr/guides/$slug'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -77,6 +79,16 @@ const BlogSlugRoute = BlogSlugRouteImport.update({
   path: '/blog/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const FrSlugRoute = FrSlugRouteImport.update({
+  id: '/fr/$slug',
+  path: '/fr/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FrGuidesSlugRoute = FrGuidesSlugRouteImport.update({
+  id: '/fr/guides/$slug',
+  path: '/fr/guides/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -89,7 +101,9 @@ export interface FileRoutesByFullPath {
   '/private-driver-agadir': typeof PrivateDriverAgadirRoute
   '/reservation': typeof ReservationRoute
   '/blog/$slug': typeof BlogSlugRoute
+  '/fr/$slug': typeof FrSlugRoute
   '/blog/': typeof BlogIndexRoute
+  '/fr/guides/$slug': typeof FrGuidesSlugRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -102,7 +116,9 @@ export interface FileRoutesByTo {
   '/private-driver-agadir': typeof PrivateDriverAgadirRoute
   '/reservation': typeof ReservationRoute
   '/blog/$slug': typeof BlogSlugRoute
+  '/fr/$slug': typeof FrSlugRoute
   '/blog': typeof BlogIndexRoute
+  '/fr/guides/$slug': typeof FrGuidesSlugRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -116,7 +132,9 @@ export interface FileRoutesById {
   '/private-driver-agadir': typeof PrivateDriverAgadirRoute
   '/reservation': typeof ReservationRoute
   '/blog/$slug': typeof BlogSlugRoute
+  '/fr/$slug': typeof FrSlugRoute
   '/blog/': typeof BlogIndexRoute
+  '/fr/guides/$slug': typeof FrGuidesSlugRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -131,7 +149,9 @@ export interface FileRouteTypes {
     | '/private-driver-agadir'
     | '/reservation'
     | '/blog/$slug'
+    | '/fr/$slug'
     | '/blog/'
+    | '/fr/guides/$slug'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -144,7 +164,9 @@ export interface FileRouteTypes {
     | '/private-driver-agadir'
     | '/reservation'
     | '/blog/$slug'
+    | '/fr/$slug'
     | '/blog'
+    | '/fr/guides/$slug'
   id:
     | '__root__'
     | '/'
@@ -157,7 +179,9 @@ export interface FileRouteTypes {
     | '/private-driver-agadir'
     | '/reservation'
     | '/blog/$slug'
+    | '/fr/$slug'
     | '/blog/'
+    | '/fr/guides/$slug'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -171,7 +195,9 @@ export interface RootRouteChildren {
   PrivateDriverAgadirRoute: typeof PrivateDriverAgadirRoute
   ReservationRoute: typeof ReservationRoute
   BlogSlugRoute: typeof BlogSlugRoute
+  FrSlugRoute: typeof FrSlugRoute
   BlogIndexRoute: typeof BlogIndexRoute
+  FrGuidesSlugRoute: typeof FrGuidesSlugRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -253,6 +279,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BlogSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/fr/$slug': {
+      id: '/fr/$slug'
+      path: '/fr/$slug'
+      fullPath: '/fr/$slug'
+      preLoaderRoute: typeof FrSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/fr/guides/$slug': {
+      id: '/fr/guides/$slug'
+      path: '/fr/guides/$slug'
+      fullPath: '/fr/guides/$slug'
+      preLoaderRoute: typeof FrGuidesSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -267,7 +307,9 @@ const rootRouteChildren: RootRouteChildren = {
   PrivateDriverAgadirRoute: PrivateDriverAgadirRoute,
   ReservationRoute: ReservationRoute,
   BlogSlugRoute: BlogSlugRoute,
+  FrSlugRoute: FrSlugRoute,
   BlogIndexRoute: BlogIndexRoute,
+  FrGuidesSlugRoute: FrGuidesSlugRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

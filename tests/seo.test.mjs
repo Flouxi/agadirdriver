@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { readFileSync, existsSync } from "node:fs";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 
@@ -20,9 +20,19 @@ function meta(html, name) {
     .map((a) => a.content);
 }
 for (const url of urls) {
+  const pathname = new URL(url).pathname;
+  const french = pathname.startsWith("/fr/");
+  const article =
+    pathname.startsWith("/blog/") ||
+    pathname === "/fr/prix-transfert-aeroport-agadir" ||
+    pathname.startsWith("/fr/guides/");
   const response = await app.fetch(new Request(url));
   const html = await response.text();
   assert.equal(response.status, 200, url);
+  for (const image of html.matchAll(/<img\b[^>]*\bsrc="([^"]*)"[^>]*>/g)) {
+    if (image[1].startsWith("/assets/"))
+      assert.ok(existsSync(resolve("public", "." + image[1])), "Local image exists: " + image[1]);
+  }
   const title = [...html.matchAll(/<title>(.*?)<\/title>/g)];
   assert.equal(title.length, 1, "One title: " + url);
   assert.ok(!titles.has(title[0][1]), "Unique title: " + url);
@@ -57,7 +67,7 @@ for (const url of urls) {
     entities.some((e) => e["@type"] === "LocalBusiness"),
     "Existing real business entity",
   );
-  if (!new URL(url).pathname.startsWith("/blog") && url !== origin + "/") {
+  if (!pathname.startsWith("/blog") && !article && url !== origin + "/") {
     assert.ok(
       entities.some((e) => e["@type"] === "Service" && e.url === url),
       "Service describes this page",
@@ -67,11 +77,53 @@ for (const url of urls) {
       "Breadcrumbs represented",
     );
   }
-  if (new URL(url).pathname.startsWith("/blog/"))
+  if (article)
     assert.ok(
       entities.some((e) => e["@type"] === "Article" && e.url === url),
       "Article URL and entity",
     );
+  const faq = entities.find((e) => e["@type"] === "FAQPage");
+  if (pathname !== "/blog") {
+    assert.ok(faq && faq.mainEntity.length === 6, "Visible booking FAQ schema: " + url);
+    const summaries = [...html.matchAll(/<summary[^>]*>([\s\S]*?)<\/summary>/g)].map((m) =>
+      m[1].replace(/<[^>]*>/g, ""),
+    );
+    for (const question of faq.mainEntity)
+      assert.ok(summaries.includes(question.name), "FAQ question matches visible content: " + url);
+  }
+  if (french) {
+    assert.ok(/<html[^>]*lang="fr"/.test(html), "French language in server HTML");
+    assert.ok(html.includes("Mon trajet est-il confirmé"), "French FAQ rendered on the server");
+    const alternates = [...html.matchAll(/<link\s+([^>]+)>/g)]
+      .map((m) =>
+        Object.fromEntries(
+          [...m[1].matchAll(/([\w:-]+)="([^"]*)"/g)].map((a) => [a[1].toLowerCase(), a[2]]),
+        ),
+      )
+      .filter((a) => a.rel === "alternate");
+    assert.equal(alternates.length, 3, "English, French and default alternatives");
+    assert.equal(alternates.find((a) => a.hreflang === "fr")?.href, url, "French self alternate");
+    assert.ok(
+      alternates.find((a) => a.hreflang === "en")?.href.startsWith(origin + "/"),
+      "English counterpart",
+    );
+    const counterpart = await app.fetch(
+      new Request(alternates.find((a) => a.hreflang === "en").href),
+    );
+    const englishHtml = await counterpart.text();
+    assert.equal(counterpart.status, 200, "English counterpart returns 200");
+    assert.ok(/<html[^>]*lang="en"/.test(englishHtml), "English counterpart rendered in English");
+    assert.ok(
+      englishHtml.includes('href="' + url + '"'),
+      "English counterpart links back to French page",
+    );
+    assert.ok(
+      html.includes('hrefLang="en"') ||
+        html.includes('hrefLang="fr"') ||
+        html.includes('hreflang="en"'),
+      "Crawlable language links",
+    );
+  }
   console.log("SEO HTML OK", new URL(url).pathname);
 }
 assert.ok(!urls.some((url) => url.endsWith("/agadir-airport-taxi")), "Alias excluded from sitemap");
@@ -82,6 +134,13 @@ assert.equal(destination.pathname, "/agadir-airport-transfer");
 assert.equal(destination.searchParams.get("utm_source"), "qa");
 const missing = await app.fetch(new Request(origin + "/blog/not-a-published-guide-qa"));
 assert.equal(missing.status, 404, "Unknown blog articles must be real 404s");
+for (const path of ["/fr/not-a-published-page-qa", "/fr/guides/not-a-published-guide-qa"]) {
+  assert.equal(
+    (await app.fetch(new Request(origin + path))).status,
+    404,
+    "Unknown French page must be a real 404",
+  );
+}
 const passengerQuery = new URLSearchParams({
   from: "Aéroport Agadir Al Massira (AGA)",
   to: "Riu Palace Tikida Taghazout",

@@ -7,8 +7,8 @@ export const SERVICE_DETAILS = {
         "Prise en charge aéroport ou taxi vers Agadir ?",
       ],
       body: [
-        "Arrange a private vehicle from Agadir Al Massira Airport (AGA) to Agadir city, Taghazout or Tamraght. Your request goes to our local team; the pickup point, availability and final fare are confirmed before the journey. An airport taxi search and a private airport transfer lead to the same booking service here.",
-        "Organisez un véhicule privé depuis l'aéroport Agadir Al Massira (AGA) vers Agadir, Taghazout ou Tamraght. Notre équipe confirme le rendez-vous, la disponibilité et le tarif final avant le trajet. Le taxi aéroport et le transfert privé correspondent ici au même service de réservation.",
+        "Arrange a private vehicle from Agadir Al Massira Airport (AGA) to Agadir city, Taghazout or Tamraght. Your request goes to our local team; the pickup point, availability and final fare are confirmed before the journey. This is a pre-arranged private ride: confirm your vehicle with our team before you travel.",
+        "Organisez un véhicule privé depuis l'aéroport Agadir Al Massira (AGA) vers Agadir, Taghazout ou Tamraght. Notre équipe confirme le rendez-vous, la disponibilité et le tarif final avant le trajet. Il s'agit d'un trajet privé réservé à l'avance : faites confirmer votre véhicule avant de voyager.",
       ],
     },
     {

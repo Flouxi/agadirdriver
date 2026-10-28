@@ -1,9 +1,11 @@
 import { useState } from "react";
+import { useRouterState } from "@tanstack/react-router";
 import { Globe, Menu, X, MessageCircle, ChevronDown } from "lucide-react";
 import { AGADIR_DRIVER_LOGO_URL } from "../lib/brand-images";
 import { useI18n } from "../lib/i18n";
 import { useCopy } from "../lib/copy";
 import { BUSINESS } from "../data/seo";
+import { localizedHref, localizedPath } from "../lib/localized-paths";
 
 interface Props {
   onNavClick?: (section: string) => void;
@@ -13,6 +15,7 @@ export default function Header({ onNavClick, overlay = false }: Props) {
   const [open, setOpen] = useState(false);
   const [languages, setLanguages] = useState(false);
   const { lang, setLang } = useI18n();
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
   const c = useCopy();
   const items = [
     {
@@ -24,9 +27,13 @@ export default function Header({ onNavClick, overlay = false }: Props) {
     {
       id: "hourly",
       label: c("By the hour", "À l'heure"),
-      href: "/?service=hourly#booking-interface",
+      href: lang === "FR" ? "/fr/chauffeur-prive-agadir" : "/?service=hourly#booking-interface",
     },
-    { id: "help", label: c("Help", "Aide"), href: "/#help" },
+    {
+      id: "help",
+      label: c("Help", "Aide"),
+      href: lang === "FR" && pathname.startsWith("/fr/") ? pathname + "#help" : "/#help",
+    },
     {
       id: "business",
       label: c("Business", "Entreprises"),
@@ -54,7 +61,7 @@ export default function Header({ onNavClick, overlay = false }: Props) {
           {items.map((item) => (
             <a
               key={item.id}
-              href={item.href}
+              href={localizedHref(item.href, lang === "FR" ? "FR" : "EN")}
               onClick={(event) => {
                 if (onNavClick && item.id !== "business") {
                   event.preventDefault();
@@ -72,7 +79,7 @@ export default function Header({ onNavClick, overlay = false }: Props) {
             <button
               type="button"
               aria-expanded={languages}
-              aria-label={c("Choose language", "Choisir la langue")}
+              aria-label={lang + " · " + c("Choose language", "Choisir la langue")}
               onClick={() => setLanguages(!languages)}
             >
               <Globe size={16} />
@@ -81,18 +88,33 @@ export default function Header({ onNavClick, overlay = false }: Props) {
             </button>
             {languages && (
               <div className="ad-language-menu">
-                {(["EN", "FR"] as const).map((code) => (
-                  <button
-                    key={code}
-                    onClick={() => {
-                      setLang(code);
-                      setLanguages(false);
-                    }}
-                    aria-pressed={lang === code}
-                  >
-                    {code === "EN" ? "English" : "Français"}
-                  </button>
-                ))}
+                {(["EN", "FR"] as const).map((code) =>
+                  localizedPath(pathname, code) ? (
+                    <a
+                      key={code}
+                      href={localizedPath(pathname, code)}
+                      hrefLang={code.toLowerCase()}
+                      aria-current={lang === code ? "page" : undefined}
+                      onClick={() => {
+                        setLang(code);
+                        setLanguages(false);
+                      }}
+                    >
+                      {code === "EN" ? "English" : "Français"}
+                    </a>
+                  ) : (
+                    <button
+                      key={code}
+                      onClick={() => {
+                        setLang(code);
+                        setLanguages(false);
+                      }}
+                      aria-pressed={lang === code}
+                    >
+                      {code === "EN" ? "English" : "Français"}
+                    </button>
+                  ),
+                )}
               </div>
             )}
           </div>
