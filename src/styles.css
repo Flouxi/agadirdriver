@@ -1920,7 +1920,7 @@ body {
   justify-content: space-between;
   gap: 20px;
   font-size: 9px;
-  color: #ffffff6b;
+  color: #ffffff99;
 }
 .ad-footer-bottom a {
   font-size: 9px;
@@ -3095,7 +3095,7 @@ body {
   font:
     11px/1.5 Arial,
     sans-serif;
-  color: #777;
+  color: var(--ad-muted);
   margin-top: 10px;
   max-width: 190px;
 }
@@ -3131,7 +3131,7 @@ body {
   font:
     11px Arial,
     sans-serif;
-  color: #777;
+  color: var(--ad-muted);
 }
 .ad-home-destinations {
   border-top: 1px solid #e4e3dc;
@@ -3193,13 +3193,13 @@ body {
   font:
     11px Arial,
     sans-serif;
-  color: #777;
+  color: var(--ad-muted);
 }
 .ad-reference-home .ad-destination-card span {
   font:
     12px/1.5 Arial,
     sans-serif;
-  color: #777;
+  color: var(--ad-muted);
 }
 .ad-destination-links {
   display: grid;
@@ -3228,7 +3228,7 @@ body {
   font:
     11px/1.5 Arial,
     sans-serif;
-  color: #85857d;
+  color: var(--ad-muted);
   margin-top: 4px;
 }
 .ad-destination-links button > svg {
@@ -3293,7 +3293,7 @@ body {
 }
 .ad-home-contact small {
   grid-column: 1/-1;
-  color: #ffffff70;
+  color: #ffffff99;
   font:
     11px/1.6 Arial,
     sans-serif;
@@ -4632,7 +4632,7 @@ body {
 }
 .ad-reference-footer small {
   display: block;
-  color: #ffffff65;
+  color: #ffffff99;
   font:
     9px Arial,
     sans-serif;
@@ -6148,6 +6148,45 @@ body {
 }
 .ad-seo-table tbody th {
   font-weight: 500;
+}
+.ad-fare-book {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 1px solid var(--ad-line);
+  border-radius: 8px;
+  background: white;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.ad-airport-options .ad-text-button {
+  margin-top: 20px;
+}
+.ad-airport-options p + p {
+  margin-top: 16px;
+}
+.ad-transport-options {
+  margin-top: 24px;
+}
+.ad-transport-options > div {
+  border-top: 1px solid var(--ad-line);
+  padding-block: 20px;
+}
+.ad-transport-options dt {
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+.ad-transport-options dd {
+  color: var(--ad-muted);
+  font-size: 14px;
+  line-height: 1.8;
+}
+.ad-transport-options a {
+  color: var(--ad-ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 .ad-guide-related {
   display: grid;

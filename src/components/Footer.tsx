@@ -13,11 +13,10 @@ export default function Footer() {
   const services = [
     [c("Airport transfers", "Transferts aéroport"), "/agadir-airport-transfer"],
     [c("City rides", "Trajets entre villes"), "/agadir-taxi"],
-    [
-      c("Chauffeur by the hour", "Chauffeur à l'heure"),
-      lang === "FR" ? "/fr/chauffeur-prive-agadir" : "/?service=hourly#booking-interface",
-    ],
+    [c("Chauffeur by the hour", "Chauffeur à l'heure"), "/private-driver-agadir"],
     [c("Private driver", "Chauffeur privé"), "/private-driver-agadir"],
+    [c("Airport to Taghazout", "Aéroport vers Taghazout"), "/airport-transfer-taghazout"],
+    [c("Airport to Tamraght", "Aéroport vers Tamraght"), "/airport-transfer-tamraght"],
     [
       c("For travel agencies", "Pour les agences de voyages"),
       "mailto:support@agadirdriver.com?subject=Travel%20agency%20enquiry",
@@ -94,7 +93,13 @@ export default function Footer() {
             <ul>
               {AIRPORTS.slice(0, 7).map((a) => (
                 <li key={a.id}>
-                  <a href={"/reservation?from=" + encodeURIComponent(a.label)}>
+                  <a
+                    href={
+                      a.id === "aga"
+                        ? localizedHref("/agadir-airport-transfer", lang === "FR" ? "FR" : "EN")
+                        : "/reservation?from=" + encodeURIComponent(a.label)
+                    }
+                  >
                     {a.label}
                     <ArrowUpRight size={11} />
                   </a>

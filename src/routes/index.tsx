@@ -24,7 +24,7 @@ export const Route = createFileRoute("/")({
     const head = seoHead({
       title: "Agadir Transfers & Private Drivers | Agadir Driver",
       description:
-        "Private airport transfers, city rides and hourly chauffeurs in Agadir and across Morocco. Compare vehicles and confirm your request with our local team.",
+        "Arrange Agadir transfers, airport pickups and private transport to your hotel, Taghazout or Tamraght. Compare vehicles and confirm with our local team.",
       path: "/",
     });
     return {
@@ -140,14 +140,14 @@ function Home() {
         <main id="main-content" className="ad-shell ad-hero">
           <div className="ad-hero-copy">
             <h1>
-              {c("Private airport transfers", "Transferts aéroport privés")}
+              {c("Agadir transfers", "Transferts à Agadir")}
               <br />
-              {c("in Agadir & across Morocco", "à Agadir et partout au Maroc")}
+              {c("& private transport", "et transport privé")}
             </h1>
             <p>
               {c(
-                "Choose your ride. Confirm with our local team on WhatsApp.",
-                "Choisissez votre trajet. Confirmez avec notre équipe sur WhatsApp.",
+                "Airport pickups, hotel transfers and private drivers. Compare vehicles for Agadir, Taghazout or Tamraght, then confirm with our local team.",
+                "Départs aéroport, transferts hôtel et chauffeurs privés. Comparez les véhicules vers Agadir, Taghazout ou Tamraght, puis confirmez avec notre équipe.",
               )}
             </p>
           </div>

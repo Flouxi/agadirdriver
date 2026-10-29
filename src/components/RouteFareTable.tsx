@@ -1,5 +1,6 @@
 import { AGADIR_ROUTES, zoneLabel, type ZoneId } from "../data/tariffs";
 import { useCopy } from "../lib/copy";
+import { AIRPORTS } from "../data/locations";
 
 export default function RouteFareTable({
   destination,
@@ -19,7 +20,7 @@ export default function RouteFareTable({
   );
   if (!rows.length) return null;
   return (
-    <section className="ad-section ad-seo-fares">
+    <section className="ad-section ad-seo-fares" id="transfer-prices">
       <div className="ad-shell">
         <h2>
           {city
@@ -51,6 +52,7 @@ export default function RouteFareTable({
                 <th scope="col">{c("Economy Sedan", "Berline économique")}</th>
                 <th scope="col">{c("Comfort Sedan", "Berline confort")}</th>
                 <th scope="col">{c("Comfort Van", "Van confort")}</th>
+                <th scope="col">{c("Choose your ride", "Choisissez votre trajet")}</th>
               </tr>
             </thead>
             <tbody>
@@ -60,6 +62,25 @@ export default function RouteFareTable({
                   <td>€{route.prices.economy}</td>
                   <td>€{route.prices.comfortSedan}</td>
                   <td>€{route.prices.comfortVan}</td>
+                  <td>
+                    <a
+                      className="ad-fare-book"
+                      href={
+                        "/reservation?" +
+                        new URLSearchParams({
+                          from: city ? "Agadir Centre-Ville" : AIRPORTS[0].label,
+                          to: zoneLabel(route.to),
+                          type: "transfer",
+                        }).toString()
+                      }
+                      aria-label={c(
+                        `See vehicles for ${zoneLabel(route.to)}`,
+                        `Voir les véhicules vers ${zoneLabel(route.to)}`,
+                      )}
+                    >
+                      {c("See vehicles", "Voir les véhicules")}
+                    </a>
+                  </td>
                 </tr>
               ))}
             </tbody>

@@ -1,0 +1,18 @@
+{
+  "date": "2026-10-29",
+  "new_discovery_rows": 472,
+  "uk_discovery_rows": 279,
+  "france_discovery_rows": 193,
+  "previous_rows": 216,
+  "combined_unique_market_keyword_rows": 556,
+  "new_unique_rows_vs_previous": 342,
+  "decisions": {
+    "supporting topic": 2,
+    "mapped": 111,
+    "excluded": 332,
+    "deferred": 111
+  },
+  "approved_primary_targets": 15,
+  "new_pages_created": 0,
+  "100000_keyword_test": "not completed"
+}

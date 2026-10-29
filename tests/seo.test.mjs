@@ -28,6 +28,24 @@ for (const url of urls) {
     pathname.startsWith("/fr/guides/");
   const response = await app.fetch(new Request(url));
   const html = await response.text();
+  if (pathname === "/airport-transfer-taghazout" || pathname === "/fr/transfert-aeroport-taghazout")
+    assert.ok(
+      /<strong>Taghazout<\/strong>/.test(html),
+      "Taghazout is preselected in the booking form",
+    );
+  if (pathname === "/airport-transfer-tamraght")
+    assert.ok(
+      /<strong>Tamraght<\/strong>/.test(html),
+      "Tamraght is preselected in the booking form",
+    );
+  for (const match of html.matchAll(/class="ad-fare-book" href="([^"]+)"/g)) {
+    const routeUrl = new URL(match[1].replaceAll("&amp;", "&"), origin);
+    assert.equal(routeUrl.pathname, "/reservation");
+    assert.equal(routeUrl.searchParams.get("type"), "transfer");
+    assert.ok(routeUrl.searchParams.get("from"));
+    assert.ok(routeUrl.searchParams.get("to"));
+    assert.notEqual(routeUrl.searchParams.get("from"), routeUrl.searchParams.get("to"));
+  }
   assert.equal(response.status, 200, url);
   for (const image of html.matchAll(/<img\b[^>]*\bsrc="([^"]*)"[^>]*>/g)) {
     if (image[1].startsWith("/assets/"))
@@ -86,10 +104,27 @@ for (const url of urls) {
   if (pathname !== "/blog") {
     assert.ok(faq && faq.mainEntity.length === 6, "Visible booking FAQ schema: " + url);
     const summaries = [...html.matchAll(/<summary[^>]*>([\s\S]*?)<\/summary>/g)].map((m) =>
-      m[1].replace(/<[^>]*>/g, ""),
+      m[1]
+        .replace(/<[^>]*>/g, "")
+        .replaceAll("&#x27;", "'")
+        .replaceAll("&#39;", "'")
+        .replaceAll("&amp;", "&"),
     );
     for (const question of faq.mainEntity)
       assert.ok(summaries.includes(question.name), "FAQ question matches visible content: " + url);
+    const visibleText = html
+      .replace(/<script\b[^>]*>[\s\S]*?<\/script>/g, "")
+      .replace(/<[^>]*>/g, " ")
+      .replaceAll("&amp;", "&")
+      .replaceAll("&#x27;", "'")
+      .replaceAll("&#39;", "'")
+      .replaceAll("&quot;", '"')
+      .replace(/\s+/g, " ");
+    for (const question of faq.mainEntity)
+      assert.ok(
+        visibleText.includes(question.acceptedAnswer.text.replace(/\s+/g, " ")),
+        "FAQ answer matches visible content: " + url,
+      );
   }
   if (french) {
     assert.ok(/<html[^>]*lang="fr"/.test(html), "French language in server HTML");
