@@ -10,9 +10,9 @@ export const BUSINESS = {
 
 export const SERVICE_PAGES = {
   "/agadir-airport-transfer": {
-    title: "Agadir Airport Transfer & Taxi | Agadir Driver",
+    title: "Agadir Airport Transfers & Private Taxi | Agadir Driver",
     description:
-      "Compare private Agadir airport transfers to Agadir, Taghazout and Tamraght. See per-vehicle fares and confirm your ride with our local team.",
+      "Agadir airport transfers to hotels, Taghazout and Tamraght. Compare private vehicle prices, plan your pickup and confirm the fare with our local team.",
     h1: "Agadir Airport Transfers",
     intro:
       "Arrange a private transfer from Agadir Al Massira Airport to your hotel, apartment, surf camp, or final destination.",

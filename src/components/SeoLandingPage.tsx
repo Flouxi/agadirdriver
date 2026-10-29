@@ -12,6 +12,7 @@ import { SERVICE_DETAILS } from "../data/service-details";
 import { jsonLd } from "../lib/seo-head";
 import { localizedPath } from "../lib/localized-paths";
 import { frenchPage } from "../data/french-pages";
+import AirportTransportOptions from "./AirportTransportOptions";
 
 export default function SeoLandingPage({
   page,
@@ -30,7 +31,10 @@ export default function SeoLandingPage({
     : path.includes("tamraght")
       ? "Tamraght"
       : "";
-  const initial = { from: city || hourly ? "Agadir Centre-Ville" : AIRPORTS[0].label };
+  const initial = {
+    from: city || hourly ? "Agadir Centre-Ville" : AIRPORTS[0].label,
+    to: destination,
+  };
   const heading = c(
     page.h1,
     hourly
@@ -164,6 +168,7 @@ export default function SeoLandingPage({
             }
           />
         )}
+        {path === "/agadir-airport-transfer" && <AirportTransportOptions />}
         <section className="ad-section ad-service-details">
           <div className="ad-shell">
             {SERVICE_DETAILS[path].map((section) => (
@@ -230,7 +235,9 @@ export default function SeoLandingPage({
             </div>
           </div>
         </section>
-        <BookingFaqs />
+        <BookingFaqs
+          context={hourly ? "hourly" : city ? "city" : destination ? "coast" : "airport"}
+        />
         <section className="ad-section ad-related-services">
           <div className="ad-shell">
             <h2>{c("Planning another journey?", "Un autre trajet à organiser ?")}</h2>

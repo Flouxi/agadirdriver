@@ -2,7 +2,11 @@ import { useCopy } from "../lib/copy";
 import { BUSINESS } from "../data/seo";
 import { jsonLd } from "../lib/seo-head";
 
-export default function BookingFaqs() {
+export default function BookingFaqs({
+  context,
+}: {
+  context?: "airport" | "coast" | "city" | "hourly";
+}) {
   const c = useCopy();
   const questions = [
     [
@@ -54,6 +58,61 @@ export default function BookingFaqs() {
       ),
     ],
   ];
+  if (context === "airport") {
+    questions[5] = [
+      c(
+        "Where will I meet my driver at Agadir airport?",
+        "Où retrouver mon chauffeur à l'aéroport d'Agadir ?",
+      ),
+      c(
+        "Our team confirms the exact airport meeting point with your booking. Keep the confirmation message and contact number available after landing. If your arrival changes, contact the team before travelling to the pickup point.",
+        "Notre équipe confirme le point de rendez-vous exact avec votre réservation. Gardez le message de confirmation et le numéro de contact accessibles après l'atterrissage. En cas de changement, contactez l'équipe avant de rejoindre le rendez-vous.",
+      ),
+    ];
+  } else if (context === "coast") {
+    questions[5] = [
+      c(
+        "Can I arrange a return transfer to Agadir airport?",
+        "Puis-je prévoir le retour vers l'aéroport d'Agadir ?",
+      ),
+      c(
+        "Yes. Select Add return and enter the pickup time at your accommodation, then share your departure-flight details. Ask our team to confirm the pickup address, timing, vehicle and final fare for both journeys.",
+        "Oui. Sélectionnez Ajouter retour et indiquez l'heure de prise en charge à l'hébergement, puis communiquez les détails du vol de départ. Faites confirmer l'adresse, les horaires, le véhicule et le tarif final des deux trajets par notre équipe.",
+      ),
+    ];
+  } else if (context === "city") {
+    questions[3] = [
+      c(
+        "Are these Agadir taxi-meter prices?",
+        "S'agit-il des prix au compteur des taxis d'Agadir ?",
+      ),
+      c(
+        "The prices on this page are Agadir Driver's pre-arranged private-vehicle fares. They are not public taxi-meter tariffs. Enter your exact pickup and destination so our team can confirm the appropriate route and final quote.",
+        "Les prix de cette page sont les tarifs de véhicules privés réservés auprès d'Agadir Driver. Ce ne sont pas les tarifs au compteur des taxis publics. Indiquez le départ et l'arrivée exacts afin de confirmer le parcours et le devis final.",
+      ),
+    ];
+  } else if (context === "hourly") {
+    questions[1] = [
+      c(
+        "How do I arrange a driver for several stops?",
+        "Comment prévoir un chauffeur pour plusieurs arrêts ?",
+      ),
+      c(
+        "Choose By the hour, select your pickup and duration, and describe your intended stops in the notes. Our team confirms the itinerary, vehicle, final fare and any extra-time arrangements before booking.",
+        "Choisissez À l'heure, indiquez le départ et la durée, puis décrivez les arrêts dans les remarques. Notre équipe confirme l'itinéraire, le véhicule, le tarif final et les conditions de temps supplémentaire avant réservation.",
+      ),
+    ];
+    questions[3] = [
+      c(
+        "Should I choose hourly hire or a transfer?",
+        "Choisir une mise à disposition ou un transfert ?",
+      ),
+      c(
+        "Hourly hire suits a schedule with several stops. For one journey from one address to another, select Transfer to compare the route fare. Tell the team about longer distances or special access before confirming your plan.",
+        "La mise à disposition convient à un programme avec plusieurs arrêts. Pour un trajet entre deux adresses, choisissez Transfert pour comparer le tarif du parcours. Précisez les longues distances ou accès particuliers avant confirmation.",
+      ),
+    ];
+  }
   return (
     <section className="ad-section ad-booking-faq" id="help" aria-labelledby="booking-faq-heading">
       <script
@@ -72,7 +131,14 @@ export default function BookingFaqs() {
       />
       <div className="ad-shell">
         <div className="ad-section-heading">
-          <h2 id="booking-faq-heading">{c("Before you book", "Avant de réserver")}</h2>
+          <h2 id="booking-faq-heading">
+            {context === "airport"
+              ? c(
+                  "Agadir airport transfer questions",
+                  "Questions sur les transferts aéroport d'Agadir",
+                )
+              : c("Before you book", "Avant de réserver")}
+          </h2>
           <p>
             {c(
               "Clear answers for a smoother arrival.",
