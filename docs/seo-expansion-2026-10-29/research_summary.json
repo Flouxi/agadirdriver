@@ -8,9 +8,9 @@
   "new_unique_rows_vs_previous": 342,
   "decisions": {
     "supporting topic": 2,
-    "mapped": 174,
-    "excluded": 235,
-    "deferred": 145
+    "mapped": 111,
+    "excluded": 332,
+    "deferred": 111
   },
   "approved_primary_targets": 15,
   "new_pages_created": 0,

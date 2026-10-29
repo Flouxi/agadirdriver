@@ -19,7 +19,7 @@
 
 Source: the signed-in Google Ads Keyword Planner, Google network, Oct 2025–Sep 2026, captured 29 October 2026. Ranges are estimates, and close variants can share demand. Do not add the ranges together or use advertising competition as an organic-difficulty score.
 
-The two discovery results returned **279 UK and 193 France rows**, all captured from the rendered tables. Combined with the earlier research, after deduplicating by market and normalized keyword, there are **556 records**: 174 mapped phrases, 2 supporting broad topics, 235 excluded and 145 deferred. There are 342 additional unique records compared with the earlier 216-row research. The new discovery samples overlap the earlier samples; 472 plus 216 is not the unique total.
+The two discovery results returned **279 UK and 193 France rows**, all captured from the rendered tables. Combined with the earlier research, after deduplicating by market and normalized keyword, there are **556 records**: 111 mapped phrases, 2 supporting broad topics, 332 excluded and 111 deferred. There are 342 additional unique records compared with the earlier 216-row research. A final intent review excluded hotel-name-only searches, named transport operators, public-taxi-specific requests and low-demand ranges so they are not misreported as private-transfer opportunities. The new discovery samples overlap the earlier samples; 472 plus 216 is not the unique total.
 
 ## Implemented website improvements
 
